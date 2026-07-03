@@ -160,6 +160,14 @@ button {
   padding: var(--pad-main-top) var(--pad-main-x) var(--space-16);
 }
 
+.today-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--pad-card);
+}
+
 .date {
   margin-bottom: var(--space-2);
   color: var(--muted);
@@ -169,7 +177,6 @@ button {
 }
 
 h1 {
-  margin-bottom: var(--pad-card);
   font-family: var(--font-display);
   font-size: var(--type-h1);
   font-weight: var(--weight-display);
@@ -201,13 +208,6 @@ canvas {
   font-style: italic;
   text-align: center;
   transition: opacity .4s;
-}
-
-.act-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--r-xl);
 }
 
 .btn,
@@ -258,12 +258,6 @@ canvas {
   background: var(--rest-soft);
   border-color: transparent;
   color: var(--rest-text);
-}
-
-.sep-dot {
-  padding: 0 var(--space-hairline);
-  color: var(--line2);
-  font-size: var(--type-meta);
 }
 
 .week {
@@ -480,6 +474,10 @@ select:focus {
   .main {
     max-width: none;
     padding: var(--space-8) var(--space-6) var(--space-12);
+  }
+
+  .today-head {
+    align-items: flex-start;
   }
 
   .days {
