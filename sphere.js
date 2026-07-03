@@ -63,10 +63,14 @@
     const particleTotal = reducedMotion ? 420 : 1200;
 
     for (let i = 0; i < particleTotal; i += 1) {
+      const y = 1 - (i / (particleTotal - 1)) * 2;
+      const phi = Math.acos(y);
+      const theta = i * Math.PI * (3 - Math.sqrt(5));
+
       particles.push({
-        theta: Math.random() * Math.PI * 2,
-        phi: Math.acos(2 * Math.random() - 1),
-        radiusShare: .55 + Math.random() * .45,
+        theta: theta + Math.random() * .12,
+        phi: phi + (Math.random() - .5) * .08,
+        radiusShare: .08 + Math.cbrt(Math.random()) * .92,
         offsetA: Math.random() * 6.28,
         offsetB: Math.random() * 6.28,
         offsetC: Math.random() * 6.28,
@@ -103,8 +107,10 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const activeGlow = glow + flare * .5 + flareBig * .9;
-      const halo = ctx.createRadialGradient(center, center, radius * .2, center, center, radius * 2.1);
-      halo.addColorStop(0, rgba(token("--gold"), .14 * activeGlow));
+      const halo = ctx.createRadialGradient(center, center, radius * .08, center, center, radius * 1.75);
+      halo.addColorStop(0, rgba(token("--gold"), .18 * activeGlow));
+      halo.addColorStop(.45, rgba(token("--gold"), .08 * activeGlow));
+      halo.addColorStop(.78, rgba(token("--gold"), .025 * activeGlow));
       halo.addColorStop(1, rgba(token("--gold"), 0));
       ctx.fillStyle = halo;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -144,7 +150,7 @@
       for (const item of visible) {
         const depth = (item.z + 1) / 2;
         const spriteSize = item.particle.size * (.45 + depth * .85) * (4.4 * dpr) * (1 + flareBig * .25);
-        ctx.globalAlpha = Math.min(1, (.06 + depth * .82) * activeGlow);
+        ctx.globalAlpha = Math.min(1, (.1 + depth * .72) * activeGlow);
         ctx.drawImage(sprites[item.particle.kind], item.x - spriteSize / 2, item.y - spriteSize / 2, spriteSize, spriteSize);
       }
       ctx.globalAlpha = 1;
