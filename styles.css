@@ -359,42 +359,6 @@ canvas {
   font-weight: var(--weight-medium);
 }
 
-.glance .row-lite {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--r-lg) var(--r-xl);
-  margin-bottom: var(--space-2);
-  background: var(--card);
-  border: var(--border-thin) solid var(--line);
-  border-radius: var(--r-md);
-}
-
-.co {
-  font-size: var(--type-body);
-  font-weight: var(--weight-medium);
-}
-
-.role {
-  margin-top: var(--space-hairline);
-  color: var(--muted);
-  font-size: var(--type-secondary);
-}
-
-.pill {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--r-pill);
-  background: var(--prep-soft);
-  color: var(--prep-text);
-  font-size: var(--type-tiny);
-  font-weight: var(--weight-medium);
-}
-
-.pill.sage {
-  background: var(--rest-soft);
-  color: var(--rest-text);
-}
-
 .modal-backdrop {
   position: fixed;
   inset: 0;
