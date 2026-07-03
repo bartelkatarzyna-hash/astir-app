@@ -11,9 +11,9 @@
   document.body.appendChild(mount);
 
   try {
-    const React = await import("https://esm.sh/react@18.3.1");
-    const ReactDOM = await import("https://esm.sh/react-dom@18.3.1/client");
-    const { Agentation } = await import("https://esm.sh/agentation@3.0.2?external=react,react-dom");
+    const React = await import("react");
+    const ReactDOM = await import("react-dom/client");
+    const { Agentation } = await import("https://esm.sh/agentation@3.0.2?external=react");
 
     ReactDOM.createRoot(mount).render(
       React.createElement(Agentation, {
