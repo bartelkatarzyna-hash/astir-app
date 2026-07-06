@@ -30,7 +30,9 @@
     const colors = {
       gold: token("--sphere-gold"),
       rest: token("--sphere-rest"),
-      prep: token("--sphere-prep")
+      prep: token("--sphere-prep"),
+      net: token("--sphere-net"),
+      docs: token("--sphere-docs")
     };
 
     canvas.width = size * dpr;
@@ -57,7 +59,9 @@
     const sprites = {
       gold: sprite(colors.gold),
       rest: sprite(colors.rest),
-      prep: sprite(colors.prep)
+      prep: sprite(colors.prep),
+      net: sprite(colors.net),
+      docs: sprite(colors.docs)
     };
     const particles = [];
     const particleTotal = reducedMotion ? 420 : 1200;
@@ -92,7 +96,27 @@
       particles.forEach((particle) => {
         const target = Math.random() < share ? kind : "gold";
         particle.nextKind = target;
-        particle.switchAt = now + Math.random() * 2600;
+        particle.switchAt = reducedMotion ? 0 : now + Math.random() * 2600;
+        if (reducedMotion) {
+          particle.kind = target;
+        }
+      });
+    }
+
+    function washActivities(kinds) {
+      const unique = Array.from(new Set(kinds.filter((kind) => sprites[kind])));
+      const now = performance.now();
+
+      particles.forEach((particle) => {
+        let target = "gold";
+        if (unique.length > 0 && Math.random() < .4) {
+          target = unique[Math.floor(Math.random() * unique.length)];
+        }
+        particle.nextKind = target;
+        particle.switchAt = reducedMotion ? 0 : now + Math.random() * 2600;
+        if (reducedMotion) {
+          particle.kind = target;
+        }
       });
     }
 
@@ -178,6 +202,14 @@
         pace = 1;
         glow = 1;
         flare = 1;
+      },
+      markActivities(kinds) {
+        washActivities(kinds);
+        pace = 1;
+        glow = 1;
+      },
+      smallFlare() {
+        flare = Math.max(flare, .33);
       },
       celebrateResponse() {
         wash("gold", 0);
