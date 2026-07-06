@@ -1,6 +1,6 @@
 Spec: weekly home with goals (v1)
 
-Implements the redesigned Home screen: sphere with whisper, one Add a job button, and a "This week's goals" card with arc gauges. Replaces the day-page Today layout. Reference mock: astir-home-weekly-v7-states.html. When this spec conflicts with AGENTS.md, this spec wins for the points listed in section 12; everything else in AGENTS.md still applies (tokens, spacing, type, copy rules, motion).
+Implements the redesigned Home screen: sphere with whisper, one Log application button, and a "This week's goals" card with arc gauges. Replaces the day-page Today layout. Reference mock: astir-home-weekly-v7-states.html. When this spec conflicts with AGENTS.md, this spec wins for the points listed in section 12; everything else in AGENTS.md still applies (tokens, spacing, type, copy rules, motion).
 
 
 1. Page structure (top to bottom)
@@ -10,7 +10,7 @@ Date line: "Week of {start} to {end}" (12.5px uppercase muted, letter-spacing .0
 Greeting h1: "Good morning/afternoon/evening, {name}".
 The living sphere, floating directly on the paper background. No card, no border, no container.
 Whisper line under the sphere (13.5px italic, ink2, centered).
-One solid gold button, centered: "Add a job". Opens the existing add-job modal.
+One ghost button, centered: "Log application". Opens the existing log-application modal.
 Card "This week's goals" (card recipe: card bg, line border, r-lg 14, card shadow, 22px x 26px padding). Section label 12.5px uppercase muted with an "Edit" text action right-aligned (12px, muted, hover ink2).
 
 
@@ -18,7 +18,7 @@ Removed from Home, do not re-add: the In motion glance, the prep/rest/activity c
 
 2. Activities (fixed vocabulary, v1)
 
-idNameCounted howUnitapplyApplicationsAutomatic: each job saved through the add-job modal counts oneapplicationsnetNetworkingManual, on the goal tile (minus and plus)people reached out toprepPrep for interviewsManual, binary: Mark donedone or notdocsFinish CV and profileManual, binary: Mark donedone or notrestRest daysInferred: a fully passed day (Mon-Sun, local time) with zero logged activity and zero applications counts as one rest daydays
+idNameCounted howUnitapplyApplicationsAutomatic: each application saved through the log-application modal counts oneapplicationsnetNetworkingManual, on the goal tile (minus and plus)people reached out toprepPrep for interviewsManual, binary: Mark donedone or notdocsFinish CV and profileManual, binary: Mark donedone or notrestRest daysInferred: a fully passed day (Mon-Sun, local time) with zero logged activity and zero applications counts as one rest daydays
 
 Rules:
 
@@ -106,7 +106,7 @@ prefers-reduced-motion: all ambient animation off, washes apply instantly, flare
 9. Snackbars
 
 
-"Application added. Today is done." on saving a job (existing behavior, kept).
+"Application logged." on saving an application.
 No snackbars for manual goal logging: the tile change is the feedback. Snackbars are acknowledgments, never undo mechanisms.
 
 

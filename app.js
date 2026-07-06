@@ -198,6 +198,7 @@
   let snackTimer;
   let mode = "view";
   let draftGoals = [];
+  let activeGoalControlId = "";
   let demoPreset = "";
   let demoState = null;
   let modalReturnFocus = null;
@@ -214,6 +215,7 @@
   let heardReturnFocus = null;
   let heardSelectedApplicationId = "";
   let activeHiredApplicationId = "";
+  let hiredReturnFocus = null;
   let confettiFrame = 0;
   let applicationSort = { key: "company", dir: "asc" };
   let applicationTableWidths = loadTableWidths();
@@ -676,20 +678,24 @@
     const met = isGoalMet(goal);
     const metClass = met ? " met" : "";
     const canEdit = goal.id !== "apply";
+    const activeControlClass = activeGoalControlId === goal.id ? " control-active" : "";
 
     return `
-      <article class="goal-tile ${goal.id}${metClass}${canEdit ? " editable" : ""}" data-goal="${goal.id}">
+      <article class="goal-tile ${goal.id}${metClass}${canEdit ? " editable" : ""}${activeControlClass}" data-goal="${goal.id}">
         ${gaugeSvg(goal, progress)}
         <div class="goal-title-row">
           <div class="goal-title">${info.name}</div>
-          ${infoButton()}
+          ${infoButton(goal.id)}
         </div>
         ${canEdit ? goalStepper(goal.id, info.name) : ""}
       </article>`;
   }
 
-  function infoButton() {
-    return `<span class="goal-info" data-info-tooltip="Lorem ipsum">${icon.info}</span>`;
+  function infoButton(id) {
+    const copy = id === "apply"
+      ? "We automatically update your weekly application count whenever you log an application with us."
+      : "Lorem ipsum";
+    return `<span class="goal-info" data-info-tooltip="${copy}">${icon.info}</span>`;
   }
 
   function goalStepper(id, name) {
@@ -709,7 +715,7 @@
         </svg>
         <div class="goal-title-row">
           <div class="goal-title">${activity[id].name}</div>
-          ${infoButton()}
+          ${infoButton(id)}
         </div>
       </article>`;
   }
@@ -908,7 +914,7 @@
           </div>
           <div class="role-loc">${locationLabel(role)}</div>
         </div>
-        <button class="round-icon add-application" type="button" data-apply-role="${escapeText(role.id)}" data-company-id="${escapeText(company.id)}" aria-label="Add application" data-tooltip="Add application">${icon.plus}</button>
+        <button class="round-icon add-application" type="button" data-apply-role="${escapeText(role.id)}" data-company-id="${escapeText(company.id)}" aria-label="Log application" data-tooltip="Log application">${icon.plus}</button>
       </div>`;
   }
 
@@ -1139,8 +1145,8 @@
         </div>
         <p>Nothing in motion for now. When you hear back, it will show here. In the meantime, add companies to your <a href="#watchlist">Watchlist</a> and log applications as you send them.</p>
         <div class="pipeline-empty-actions">
-          <button class="btn ghost" type="button" data-empty-add-application>Add application</button>
-          <button class="btn solid" type="button" data-empty-heard-back>I heard back</button>
+          <button class="btn ghost" type="button" data-empty-add-application>Log application</button>
+          <button class="btn ghost" type="button" data-empty-heard-back>Move to pipeline</button>
         </div>
       </div>`;
   }
@@ -1197,6 +1203,9 @@
   }
 
   function columnStyle(columnKey) {
+    if (columnKey === "menu") {
+      return ' style="width: calc(var(--menu-trigger) + var(--space-4))"';
+    }
     const width = applicationTableWidths[columnKey];
     return width ? ` style="width: ${Number(width)}px"` : "";
   }
@@ -1254,7 +1263,9 @@
     const applications = filteredApplications();
     const columns = applicationColumns();
     els.applicationsCount.textContent = applicationCountText(all.length);
-    els.applicationsSearch.hidden = !applicationsSearchOpen;
+    els.applicationsSearch.hidden = false;
+    els.applicationsSearch.disabled = !applicationsSearchOpen;
+    els.applicationsSearch.setAttribute("aria-hidden", applicationsSearchOpen ? "false" : "true");
     els.applicationsSearchWrap.classList.toggle("open", applicationsSearchOpen);
     els.applicationsTable.innerHTML = `
       <table class="applications-table">
@@ -1412,6 +1423,16 @@
     }
   }
 
+  function focusSafely(target, fallback = null) {
+    if (target && target.isConnected && typeof target.focus === "function") {
+      target.focus();
+      return;
+    }
+    if (fallback && fallback.isConnected && typeof fallback.focus === "function") {
+      fallback.focus();
+    }
+  }
+
   function setModalOrigin(origin) {
     modalOrigin = origin;
     els.jobWatchHint.hidden = origin !== "watchlist";
@@ -1432,8 +1453,8 @@
     els.form.elements.role.value = prefill.role || "";
     els.form.elements.link.value = prefill.link || "";
     els.form.elements.note.value = prefill.note ? applicationNoteText(prefill) : "";
-    els.jobTitle.textContent = prefill.id ? "Edit application" : "Add application";
-    els.form.querySelector('button[type="submit"]').textContent = prefill.id ? "Save changes" : "Add application";
+    els.jobTitle.textContent = prefill.id ? "Edit application" : "Log application";
+    els.form.querySelector('button[type="submit"]').textContent = prefill.id ? "Save changes" : "Log application";
     renderSharedControls();
     updateApplicationSubmit();
     els.backdrop.hidden = false;
@@ -1445,9 +1466,7 @@
     els.backdrop.hidden = true;
     setModalOrigin("home");
     closeFloatingLayers();
-    if (modalReturnFocus) {
-      modalReturnFocus.focus();
-    }
+    focusSafely(modalReturnFocus, els.addApplication);
     modalReturnFocus = null;
     syncSurfaceState();
   }
@@ -1472,8 +1491,8 @@
     heardSelectedApplicationId = "";
     els.heardPickStep.hidden = false;
     els.heardStageStep.hidden = true;
-    if (heardReturnFocus && els.hiredBackdrop.hidden) {
-      heardReturnFocus.focus();
+    if (els.hiredBackdrop.hidden) {
+      focusSafely(heardReturnFocus, els.heardBack);
     }
     heardReturnFocus = null;
     syncSurfaceState();
@@ -1481,6 +1500,8 @@
 
   function closeHiredModal() {
     els.hiredBackdrop.hidden = true;
+    focusSafely(hiredReturnFocus, els.pipelineHeardBack);
+    hiredReturnFocus = null;
     activeHiredApplicationId = "";
     syncSurfaceState();
   }
@@ -1534,10 +1555,11 @@
     syncSurfaceState();
   }
 
-  function openDeleteApplication(applicationId) {
+  function openDeleteApplication(applicationId, returnFocus = null) {
     const application = findApplication(applicationId);
     if (!application) return;
     activeDeleteApplicationId = applicationId;
+    modalReturnFocus = returnFocus;
     els.deleteApplicationCopy.textContent = `This removes ${application.company}, ${application.role} and its notes. There is no undo.`;
     els.deleteApplicationBackdrop.hidden = false;
     syncSurfaceState();
@@ -1547,6 +1569,8 @@
   function closeDeleteApplication() {
     els.deleteApplicationBackdrop.hidden = true;
     activeDeleteApplicationId = "";
+    focusSafely(modalReturnFocus, els.applicationsSearchToggle);
+    modalReturnFocus = null;
     syncSurfaceState();
   }
 
@@ -1555,9 +1579,13 @@
     if (!application) return;
     activeState().applications = activeState().applications.filter((item) => item.id !== activeDeleteApplicationId);
     saveState();
-    closeDeleteApplication();
+    els.deleteApplicationBackdrop.hidden = true;
+    activeDeleteApplicationId = "";
+    modalReturnFocus = null;
+    syncSurfaceState();
     showSnack("Application deleted.");
     render();
+    focusSafely(els.applicationsSearchToggle);
   }
 
   function findCompany(companyId) {
@@ -1693,7 +1721,7 @@
     saveState();
     pulseMini();
     if (application.status !== "Hired") {
-      showSnack("Application added.");
+      showSnack("Application logged.");
     }
     render();
     return application;
@@ -1839,10 +1867,11 @@
     return pipelineApplications().filter((application) => application.id !== applicationId);
   }
 
-  function openHiredMoment(applicationId) {
+  function openHiredMoment(applicationId, returnFocus = document.activeElement) {
     const application = findApplication(applicationId);
     if (!application) return;
     activeHiredApplicationId = applicationId;
+    hiredReturnFocus = returnFocus;
     els.hiredCopy.textContent = `You accepted an offer at ${application.company}. This is a big deal, give yourself a pat on the back.`;
     const others = otherPipelineApplications(applicationId);
     els.hiredCleanup.hidden = others.length === 0;
@@ -2484,7 +2513,7 @@
       if (deleteButton) {
         openMenuId = "";
         syncSurfaceState();
-        openDeleteApplication(deleteButton.dataset.deleteApplication);
+        openDeleteApplication(deleteButton.dataset.deleteApplication, deleteButton);
         renderApplicationsPage();
       }
     });
@@ -2577,11 +2606,13 @@
       if (info) return;
       if (increment) {
         event.stopPropagation();
+        activeGoalControlId = increment.dataset.incrementGoal;
         incrementGoal(increment.dataset.incrementGoal);
         return;
       }
       if (decrement) {
         event.stopPropagation();
+        activeGoalControlId = decrement.dataset.decrementGoal;
         decrementGoal(decrement.dataset.decrementGoal);
         return;
       }
@@ -2594,6 +2625,12 @@
       } else if (draftToggle && mode === "setup") {
         toggleDraft(draftToggle.dataset.draftToggle);
       }
+    });
+    els.goalsBody.addEventListener("pointerout", (event) => {
+      const tile = event.target.closest(".goal-tile.control-active");
+      if (!tile || tile.contains(event.relatedTarget)) return;
+      activeGoalControlId = "";
+      renderGoalsCard();
     });
     els.demoActions.addEventListener("click", (event) => {
       const button = event.target.closest("[data-demo]");

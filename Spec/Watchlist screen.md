@@ -42,7 +42,7 @@ Left to right:
 2. **Role block** (two lines):
    - Title line: role title, 14px ink, single line. Truncates with ellipsis only when the container forces it; no fixed max width. Full title available on hover (title attribute or tooltip). Immediately after the title text: a 22px round icon button with a real up-right arrow SVG, tooltip "Open posting", which opens the posting URL in a new tab. Hover: gold-soft circle, gold-deep icon. Because the title truncates before the button, the button never overflows.
    - Location line: 12px muted. Format is always `City, Mode` with mode capitalized: "Berlin, Hybrid", "Berlin, On-site", "Stockholm, Remote". This capitalization is a deliberate exception to the sentence-case copy rule; location modes are treated as labels. Multi-location postings render as "Berlin +6, Remote". The `+6` inherits the exact location text style: same color, weight, and size. No underline and no hover state.
-3. **Add application button**, right-aligned: 30px round icon button with a real plus SVG, tooltip "Add application". Opens the add-application modal prefilled (section 4). The plus is muted gray by default, visually consistent with the kebab size/weight, and turns gold only on hover with a gold-soft circle.
+3. **Log application button**, right-aligned: 30px round icon button with a real plus SVG, tooltip "Log application". Opens the log-application modal prefilled (section 4). The plus is muted gray by default, visually consistent with the kebab size/weight, and turns gold only on hover with a gold-soft circle.
 
 Company cards never show counts of any kind.
 
@@ -62,10 +62,10 @@ Empty states:
 
 ## 4. Applied flow (the core interaction)
 
-Tapping the plus on a role row opens the **add-application modal** prefilled. This is the same add-application modal used elsewhere in the app, not a separate component.
+Tapping the plus on a role row opens the **log-application modal** prefilled. This is the same log-application modal used elsewhere in the app, not a separate component.
 
 Modal (r-xl 18, 32px padding, standard backdrop, Esc and backdrop close):
-1. Title: "Add application" (display font 19/600).
+1. Title: "Log application" (display font 19/600).
 2. Hint line directly under the title, 14px muted: "Saving adds this to your applications and clears it from the watchlist." This line appears only when the modal was opened from a Watchlist role row.
 3. Fields in order:
    - **Link** (text, prefilled with the posting URL)
@@ -75,12 +75,12 @@ Modal (r-xl 18, 32px padding, standard backdrop, Esc and backdrop close):
      - **Status**: custom select, default "Applied". Options come from the user's stage list; defaults are Applied, 1st stage, 2nd stage, 3rd stage, Offer, Rejected, Hired. (Select and Saved are not offered in this flow.)
      - **Applied date**: date picker trigger, defaults to today. When the value is today the trigger reads "Today"; otherwise "2 July 2026" format (d MMMM yyyy).
    - **Note**: optional textarea, 3 rows, no resize handle. Placeholder: "Anything you want to remember about this one".
-4. Actions right-aligned: ghost "Cancel", solid gold "Add application".
+4. Actions right-aligned: ghost "Cancel", solid gold "Log application".
 
 On save:
 1. Create the application record (separate object from the posting, per the data model).
 2. Remove the role row with a ~.3s fade. If it was the company's last open role, fade the whole card and move the company to the quiet section.
-3. Snackbar: "Application added."
+3. Snackbar: "Application logged."
 4. The rail mini-orb gives the same quiet pulse as any application save.
 
 If the chosen status is 1st stage or later, the application appears in the Pipeline immediately; stage drives visibility everywhere, no special casing.
@@ -100,7 +100,7 @@ Popover (menu recipe surface, 12px padding, fixed width around 252px) anchored t
 **Remove flow**: selecting Remove opens a confirmation modal first; nothing is removed on the menu click itself.
 - Title: "Remove {Company}?"
 - Body: "Its open roles will no longer show here and alerts will stop. You can add the company again anytime."
-- Actions: ghost "Cancel", ghost "Remove" (ink text). Remove must not use the primary button; primary buttons stay reserved for committed actions such as Add application and I heard back.
+- Actions: ghost "Cancel", ghost "Remove" (ink text). Remove must not use the primary button.
 - On confirm: fade the card or quiet row out, snackbar "{Company} removed from your watchlist." Data is deleted per product rules (the company and its postings; application records are untouched).
 
 **Add company modal** (from the header ghost button): title "Add a company". Fields:
@@ -114,11 +114,11 @@ Keywords are global (Settings), never per company. No keyword UI appears anywher
 
 ## 6. Tooltips
 
-Custom tooltip component on all icon controls (bell, kebab, open posting, add application) and on the flame: dark pill in snack tokens (snack-bg, snack-text), 12px, 8px padding, 8px radius, fade and 3px slide over .2s ease.
+Custom tooltip component on all icon controls (bell, kebab, open posting, log application) and on the flame: dark pill in snack tokens (snack-bg, snack-text), 12px, 8px padding, 8px radius, fade and 3px slide over .2s ease.
 
 Placement: below the control by default. Flip above only when there is not enough viewport room beneath. Use the shadcn Tooltip with bottom as the preferred side.
 
-Tooltip strings: bell "Alerts", kebab "More", title-line arrow "Open posting", plus "Add application", flame "New".
+Tooltip strings: bell "Alerts", kebab "More", title-line arrow "Open posting", plus "Log application", flame "New".
 
 When a dropdown, modal, select, or date picker is open, tooltips are hidden and hover states below the open surface do not respond until it closes.
 
@@ -141,7 +141,7 @@ When a dropdown, modal, select, or date picker is open, tooltips are hidden and 
 | Edit modal footer | Role keywords apply to every company. Change them in Settings. |
 | Prefill note | Filled in from the link. Edit it if it looks off. |
 | Remove modal body | Its open roles will no longer show here and alerts will stop. You can add the company again anytime. |
-| Snackbar, applied | Application added. |
+| Snackbar, applied | Application logged. |
 | Snackbar, removed | {Company} removed from your watchlist. |
 | Snackbar, added | {Company} added. Checking its board for matching roles now. |
 | Snackbar, alerts on | Alerts on. New matching roles will reach your inbox. |

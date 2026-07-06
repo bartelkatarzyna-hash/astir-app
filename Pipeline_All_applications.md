@@ -15,7 +15,7 @@ Build to this spec. For anything visual this spec does not name, follow AGENTS.m
 
 ## 2. Pipeline header
 
-1. Row: h1 `Pipeline`, then the kebab trigger 4px to its right, spacer, ghost button `Add application`, then solid gold button `I heard back`.
+1. Row: h1 `Pipeline`, then the kebab trigger 4px to its right, spacer, ghost button `Log application`, then ghost button `Move to pipeline`.
 2. Kebab trigger uses the shared 30px round icon control with tooltip `More`.
 3. Kebab menu contains one item, `All applications`, with tooltip `View everything you have applied to.` Clicking navigates to `#applications`.
 4. When Pipeline is empty, hide both header buttons and show them in the empty state. Keep the h1 and kebab.
@@ -40,7 +40,7 @@ Build to this spec. For anything visual this spec does not name, follow AGENTS.m
 
 ## 5. Stage dropdown
 
-1. Same visual recipe as the Status dropdown in Add application.
+1. Same visual recipe as the Status dropdown in Log application.
 2. Item order: `Applied`, separator, `1st stage`, `2nd stage`, `3rd stage`, `Offer`, `Hired`, separator, `Closed`.
 3. Changing a Pipeline card to `Applied` removes it from Pipeline and shows snackbar `Moved back to applied. Kept in all applications.`
 4. Changing a Pipeline card to `Closed` removes it from Pipeline and shows snackbar `Closed. Kept in all applications.`
@@ -54,7 +54,7 @@ Build to this spec. For anything visual this spec does not name, follow AGENTS.m
 3. Visual: static gold ember circle with slow breathing. Three decorative `z` glyphs rise from beside it and fade. Respect `prefers-reduced-motion`.
 4. Copy: `Nothing in motion for now. When you hear back, it will show here. In the meantime, add companies to your Watchlist and log applications as you send them.`
 5. `Watchlist` is an inline link to `#watchlist`.
-6. Buttons below, centered: ghost `Add application`, then solid `I heard back`.
+6. Buttons below, centered: ghost `Log application`, then ghost `Move to pipeline`.
 
 ## 7. Hired moment
 
@@ -84,8 +84,8 @@ Build to this spec. For anything visual this spec does not name, follow AGENTS.m
 16. Row kebab menu: Edit and Delete.
 17. Delete opens a confirmation modal: title `Delete this application?`, body `This removes [Company], [Role] and its notes. There is no undo.`, Cancel ghost + Delete solid.
 
-## 9. Heard back flow
+## 9. Move to pipeline flow
 
-1. `I heard back` opens the same typeahead modal from Home.
+1. `Move to pipeline` opens the same typeahead modal from Home.
 2. After picking an application, the second step asks what happened with the grouped stage menu.
 3. Picking a stage applies the same stage behavior as Pipeline and All applications, including `Hired`.

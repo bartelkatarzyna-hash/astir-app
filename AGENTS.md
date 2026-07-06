@@ -12,17 +12,17 @@ Non-negotiable product rules:
 1. No outcome counts anywhere, ever: no totals of applications sent, no response rates, no rejection tallies, no streaks. Self-set weekly effort goals are the first exception: their count-up progress (numbers and arc gauges) may appear inside the This week's goals card on Home, and nowhere else. All applications has the second and only archive exception: a single count below the title, formatted as "1 application" or "[NUMBER] applications."
 2. Pipeline shows only roles that progressed to interview stages. Applied and closed jobs are stored but hidden.
 3. The archive ("All applications") is reachable but deliberately not easy (kebab menu on the Pipeline title, with a one-line explainer inside the menu).
-4. "I heard back" is the only loud button in the app. It uses the shared primary button recipe. No icon, prefix, or heavier weight.
+4. "Move to pipeline" is a quiet ghost action. It is used when an application moves to screening, and does not use the solid gold primary button recipe.
 5. Rest is a feature, not a gap. Rest and prep days count the same as applying.
 6. No guilt mechanics: nothing breaks, snaps, or shames. Absence makes things sleepy, never dead.
 
 ## 2. Screens
 
-1. **Home**: greeting, Applications card, conditional Heard back card, and the This week's goals card. No date line, sphere, whisper line, day check-in chips, week dot strip, or In motion glance. Greeting says "Welcome, [Name]" on first visit and "Welcome back, [Name]" after that, tracked in local storage.
-2. **Watchlist**: companies with matched open roles first, sorted by freshest match. Header has "Watchlist" and an "Add company" ghost button. Company rows include name, bell, and kebab management. Role rows include a flame for postings first seen in the last 48 hours, an open-posting icon, and an Add application icon that opens the shared add-application modal prefilled. Companies with no matches live in the quiet disclosure.
-3. **Pipeline**: response-only. "I heard back" hero button, kebab with archive link, cards for active pursuits (company, role, next step line, stage pill). Quiet closing line, no counts. Hired roles remain visible in Pipeline for now.
-4. **Add application modal**: opens from Home and Watchlist. Link, Company, Role, Status, Applied date, and optional Note. Watchlist-origin opens prefilled and includes the one-line hint. Saving logs the day's application activity and shows snackbar "Application added."
-5. **Heard back modal**: opens from Home after at least one application exists. Typeahead searches logged applications by company. Choosing a role moves it to 1st stage and shows a linked snackbar.
+1. **Home**: greeting, Applications card, conditional Screenings card, and the This week's goals card. No date line, sphere, whisper line, day check-in chips, week dot strip, or In motion glance. Greeting says "Welcome, [Name]" on first visit and "Welcome back, [Name]" after that, tracked in local storage.
+2. **Watchlist**: companies with matched open roles first, sorted by freshest match. Header has "Watchlist" and an "Add company" ghost button. Company rows include name, bell, and kebab management. Role rows include a flame for postings first seen in the last 48 hours, an open-posting icon, and a Log application icon that opens the shared log-application modal prefilled. Companies with no matches live in the quiet disclosure.
+3. **Pipeline**: response-only. "Move to pipeline" ghost button, kebab with archive link, cards for active pursuits (company, role, next step line, stage pill). Quiet closing line, no counts. Hired roles remain visible in Pipeline for now.
+4. **Log application modal**: opens from Home and Watchlist. Link, Company, Role, Status, Applied date, and optional Note. Watchlist-origin opens prefilled and includes the one-line hint. Saving logs the day's application activity and shows snackbar "Application logged."
+5. **Move to pipeline modal**: opens from Home after at least one application exists. Typeahead searches logged applications by company. Choosing a role moves it to 1st stage and shows a linked snackbar.
 
 ## 3. Design tokens (the only values allowed)
 
@@ -97,7 +97,7 @@ Motion: eases, never snaps. Micro-transitions .2-.3s. Rail mini-orb flare ~1.4s 
 
 ## 4. Components (build once, reuse always)
 
-1. **Primary button**: gold bg, on-gold text, pill radius, 9px 18px padding, 14/500. Used for primary actions such as "Add application" and "I heard back". No icon or special type treatment for text buttons.
+1. **Primary button**: gold bg, on-gold text, pill radius, 9px 18px padding, 14/500. Used only for committed primary actions that should feel visually warm. No icon or special type treatment for text buttons.
 2. **Ghost button**: transparent, line2 border, ink2 text, same geometry.
 3. **Stage pill**: UI/body size at 500, compact pill padding, pill radius, state-soft bg + state-text.
 4. **Card**: card bg, line border, r-lg, card shadow.
@@ -109,7 +109,7 @@ Motion: eases, never snaps. Micro-transitions .2-.3s. Rail mini-orb flare ~1.4s 
 10. **Date picker**: shared popover calendar anchored to the field. Surface uses menu recipe, 12px padding, fixed calendar width token. Header is month and year on one line with 26px round prev/next buttons. Week starts Monday. Day cells use the calendar day-size token, today is an inset gold ring, selected is solid gold with on-gold text, adjacent-month days use line2-colored text, hover is hover-soft. The trigger uses a real calendar SVG icon. The full month fits without scrolling.
 11. **Snackbar**: bottom-center, snack tokens, 11px radius, auto-dismiss ~3.5s, no progress bar.
 12. **Rail**: 200px, rail bg, active item = card bg + soft shadow. Brand = mini orb + "Astir" in display font.
-13. **Goal tile**: line border, r-md, compact centered column. Goals render four tiles per row on desktop. Gauge is a 96x56 SVG semicircle with line track and activity-deep sweep. Selected active goals show `current/target`, including over-target progress such as `7/5`; empty-state and unselected placeholder tiles show arcs and labels without counts. Labels are stable across empty, in-progress, and met states: Applications, Networking, Rest, Prep, CV and docs. Met state is shown by the completed arc only, with no tile background change. The info icon sits beside the label in light grey and uses the standard dark tooltip plus a small triangle pointing to the icon. Editable goal tiles show a subtle split hover control behind the tile content: a vertical line through the tile, minus on the left, plus on the right, and tokenized grey tint states for base hover, side hover, and active. Applications do not have tile controls because they come from application records.
+13. **Goal tile**: line border, r-md, compact centered column. Goals render five tiles per row on desktop. Gauge is a 96x56 SVG semicircle with line track and activity-deep sweep. Selected active goals show `current/target`, including over-target progress such as `7/5`; empty-state and unselected placeholder tiles show arcs and labels without counts. Labels are stable across empty, in-progress, and met states: Applications, Networking, Rest, Prep, CV and docs. Met state is shown by the completed arc only, with no tile background change. The info icon sits beside the label and matches the label color in every tile state, using the standard dark tooltip plus a small triangle pointing to the icon. Editable goal tiles show a subtle split hover control behind the tile content: a vertical line through the tile, minus on the left, plus on the right, and tokenized grey tint states for base hover, side hover, and active. Applications do not have tile controls because they come from application records.
 14. **Week setup row**: row border line, r-md, 10px 14px padding. Tapping toggles selection. Selected state uses gold-soft bg and gold-text label. Numeric selected rows show 22px round steppers.
 
 Open surfaces own interaction. When a modal, dropdown, select, or date picker is open, tooltips are hidden and hover states below that surface do not respond until it closes.
@@ -118,8 +118,8 @@ Open surfaces own interaction. When a modal, dropdown, select, or date picker is
 
 Astir no longer has a living sphere or whisper line. Home's middle is made of two calm action cards.
 
-1. **Applications card**: always visible. Label "Applications", helper copy, and ghost "Add application" button.
-2. **Heard back card**: visible only after at least one application has been logged. Label "Heard back", helper copy, and primary "I heard back" button.
+1. **Applications card**: always visible. Label "Applications", helper copy "Log it and let it go. Out of sight, out of mind. It will matter again only when moved to the screening stage.", and ghost "Log application" button.
+2. **Screenings card**: visible only after at least one application has been logged. Label "Screenings", helper copy "You just got invited to a first round. That's amazing, congrats. Let's move it to Pipeline.", and ghost "Move to pipeline" button.
 3. **This week's goals card**: remains below the Home action cards. Empty state shows copy "Set up your goals for this week" directly under the card title, a header ghost "Set up" action, and all goal tiles as disabled arcs without counts. In-progress state shows "You're doing great, keep it up." under the card title. Completed state shows "You achieved all your week's goals. Congrats." under the card title. Unselected goals remain visible as disabled placeholder tiles. Do not show a "Same as last week" action. Applications progress comes only from logged applications. Rest progress is automatic for completed past days with no activity, with a user minus override when an automatic rest day should not count. Networking, Prep, and CV and docs are manually tracked by clicking their tiles.
 4. **Rail mini-orb**: static gradient ember (CSS), soft halo breathing at ~6s, echoes application saves only. No other reactions.
 
@@ -130,7 +130,7 @@ Astir no longer has a living sphere or whisper line. Home's middle is made of tw
 3. Never use the word "signal" except for the Signal app.
 4. Never use "resting" as a label for stored/applied jobs. (As a verb for rest days it is fine.)
 5. No outcome counts in copy: no "X applied," "X in progress" for hidden items, no streak numbers. Weekly effort goal progress may use numbers only inside the This week's goals card on Home. All applications may show a single title-area count: "1 application" or "[NUMBER] applications."
-6. Sentence case. Plain verbs. Buttons say what happens: "Add application," not "Submit." Do not use exclamation marks in buttons. The hired modal title "Congratulations! 🎉" is the only product exclamation-mark exception.
+6. Sentence case. Plain verbs. Buttons say what happens: "Log application," not "Submit." Do not use exclamation marks in buttons. The hired modal title "Congratulations! 🎉" is the only product exclamation-mark exception.
 7. Empty states are invitations, not apologies. Errors say what happened and what to do.
 8. Missing table values may use an em dash only in table cells. Prose still follows the em dash ban.
 
@@ -168,12 +168,12 @@ Replace all stack references in this file with the following. Where older sectio
 
 ### Screen status (keep current)
 
-1. Home: built and working (applications card, conditional heard back card, weekly goals).
+1. Home: built and working (applications card, conditional Screenings card, weekly goals).
 2. Watchlist: built and working.
 3. Pipeline: built and working.
 4. All applications (archive): built and working. Final polish remains planned in `Pipeline_All_applications.md`.
 5. Settings: not built.
-6. Naming: the add-job modal is called "Add application" everywhere, including code. "Add job" is retired vocabulary.
+6. Naming: the add-job modal is called "Log application" everywhere. "Add job" and "Add application" are retired vocabulary.
 
 ### Token exceptions (named, closed list)
 

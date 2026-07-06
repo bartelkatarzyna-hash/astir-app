@@ -45,17 +45,17 @@
 
         <section class="home-card" aria-labelledby="applicationsLabel">
           <div class="label" id="applicationsLabel">Applications</div>
-          <p class="home-card-copy">Applied somewhere? Add it here and let it go. It stays out of view until it moves.</p>
+          <p class="home-card-copy">Log it and let it go. Out of sight, out of mind. It will matter again only when moved to the screening stage.</p>
           <div class="home-card-actions">
-            <button class="btn ghost" id="addApplication" type="button">Add application</button>
+            <button class="btn ghost" id="addApplication" type="button">Log application</button>
           </div>
         </section>
 
         <section class="home-card" id="heardBackSection" aria-labelledby="heardBackLabel" hidden>
-          <div class="label" id="heardBackLabel">Heard back</div>
-          <p class="home-card-copy">A company replied? Mark it here and the role moves into your pipeline.</p>
+          <div class="label" id="heardBackLabel">Screenings</div>
+          <p class="home-card-copy">You just got invited to a first round. That's amazing, congrats. Let's move it to Pipeline.</p>
           <div class="home-card-actions">
-            <button class="btn solid" id="heardBack" type="button">I heard back</button>
+            <button class="btn ghost" id="heardBack" type="button">Move to pipeline</button>
           </div>
         </section>
 
@@ -91,8 +91,8 @@
             </span>
           </div>
           <div class="pipeline-actions" id="pipelineActions">
-            <button class="btn ghost" id="pipelineAddApplication" type="button">Add application</button>
-            <button class="btn solid" id="pipelineHeardBack" type="button">I heard back</button>
+            <button class="btn ghost" id="pipelineAddApplication" type="button">Log application</button>
+            <button class="btn ghost" id="pipelineHeardBack" type="button">Move to pipeline</button>
           </div>
         </div>
         <div class="pipeline-list" id="pipelineList"></div>
@@ -133,7 +133,7 @@
   <div class="modal-backdrop" id="jobBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="jobTitle">
       <div class="modal-head">
-        <h2 id="jobTitle">Add application</h2>
+        <h2 id="jobTitle">Log application</h2>
       </div>
       <form id="jobForm">
         <div class="modal-hint" id="jobWatchHint" hidden>Saving adds this to your applications and clears it from the watchlist.</div>
@@ -167,7 +167,7 @@
         </label>
         <div class="modal-actions">
           <button class="btn ghost" id="cancelJob" type="button">Cancel</button>
-          <button class="btn solid" type="submit">Add application</button>
+          <button class="btn solid" type="submit">Log application</button>
         </div>
       </form>
     </section>

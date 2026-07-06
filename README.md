@@ -21,7 +21,7 @@ So the app is opinionated about attention:
 - Only live things are visible. The pipeline shows what responded and what's in progress. Everything you've applied to sits out of sight. You can look, but the app never pushes it at you. Whether you've applied to 30 or 300 is irrelevant; the three that replied are the whole game.
 - No counts, anywhere. No totals of applications sent, no response rates, no streaks. Those numbers measure anxiety, not progress, so they don't exist in the interface at all.
 - Nothing gets "rejected." A door closes, you mark it closed, one click, it disappears back into the hidden list. No red banners, no ceremony, no dwelling. Move on.
-- One loud moment. "I heard back!" is the only celebratory button in the app. The moments worth feeling are the ones going forward, so everything else stays quiet on purpose.
+- Moving forward stays quiet. "Move to pipeline" marks an application as invited to screening without making it a loud moment.
 - Rest is a feature, not a gap. Rest and prep days count the same as applying. Nothing breaks or shames you for stepping back.
 - Apply, then forget. The flow is built for it: do the work well, send it, and let it leave your head so the head is free for prep and for rest.
 
@@ -39,7 +39,7 @@ Then, when change comes, wanted or not, everything is already prepped: your reco
 
 Early stage, front-end only, no backend yet. Data lives in localStorage. Currently working:
 
-- Home: the weekly view, with application logging, a conditional "heard back" card, and weekly goals you set yourself, soft targets with quiet progress, never streaks or totals
+- Home: the weekly view, with application logging, a conditional Screenings card, and weekly goals you set yourself, soft targets with quiet progress, never streaks or totals
 - Watchlist: the curated list of companies and roles that matter, with alerts, role matching, and one-tap application logging from a role
 - The design system: a warm parchment palette with a single gold accent, everything driven by a token file (raw values inside components are treated as bugs)
 
