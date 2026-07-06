@@ -218,6 +218,7 @@
   let applicationSort = { key: "company", dir: "asc" };
   let applicationTableWidths = loadTableWidths();
   let resizingColumn = null;
+  let selectClampFrame = 0;
   let calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
   function relativeIso(hours) {
@@ -432,6 +433,19 @@
   function renderSharedControls() {
     renderStatusSelect();
     renderDatePicker();
+    scheduleSelectClamp();
+  }
+
+  function selectOptionsHtml(options, value, dataAttributes) {
+    return options.map((option) => {
+      const separator = option === "1st stage" || option === "Closed" ? '<div class="select-separator" aria-hidden="true"></div>' : "";
+      return `
+        ${separator}
+        <button class="select-option ${option === value ? "selected" : ""}" type="button" role="option" aria-selected="${option === value}" ${dataAttributes(option)}>
+          <span>${escapeText(option)}</span>
+          <span class="select-check" aria-hidden="true">${option === value ? icon.check : ""}</span>
+        </button>`;
+    }).join("");
   }
 
   function renderStatusSelect() {
@@ -444,13 +458,68 @@
         <span class="select-chev" aria-hidden="true">${icon.chevronDown}</span>
       </button>
       <div class="select-menu ${open ? "open" : ""}" role="listbox" style="--selected-index: ${selectedIndex}">
-        ${statusOptions.map((option) => `
-          <button class="select-option ${option === value ? "selected" : ""}" type="button" role="option" aria-selected="${option === value}" data-status-option="${escapeText(option)}">
-            <span>${escapeText(option)}</span>
-            <span class="select-check" aria-hidden="true">${option === value ? icon.check : ""}</span>
-          </button>
-        `).join("")}
+        ${selectOptionsHtml(statusOptions, value, (option) => `data-status-option="${escapeText(option)}"`)}
       </div>`;
+  }
+
+  function tokenPixels(name) {
+    return Number(getComputedStyle(document.documentElement).getPropertyValue(name).replace("px", "")) || 0;
+  }
+
+  function clampSelectMenu(menu) {
+    const shell = menu.closest(".select-shell");
+    const trigger = shell && shell.querySelector(".select-trigger");
+    const selected = menu.querySelector(".select-option.selected");
+    if (!shell || !trigger || !selected) return;
+
+    menu.style.position = "fixed";
+    menu.style.left = "";
+    menu.style.top = "";
+    menu.style.maxHeight = "";
+    menu.style.minWidth = "";
+    menu.scrollTop = 0;
+
+    const inset = tokenPixels("--space-2");
+    const triggerRect = trigger.getBoundingClientRect();
+    const selectedOffset = selected.offsetTop;
+    const triggerInset = tokenPixels("--space-2");
+    const availableHeight = window.innerHeight - inset * 2;
+    let nextTop = triggerRect.top - selectedOffset - triggerInset;
+    let nextLeft = triggerRect.left;
+
+    menu.style.left = `${nextLeft}px`;
+    menu.style.minWidth = `${triggerRect.width}px`;
+    menu.style.top = `${nextTop}px`;
+
+    let rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth - inset) {
+      nextLeft -= rect.right - (window.innerWidth - inset);
+      menu.style.left = `${Math.max(inset, nextLeft)}px`;
+      rect = menu.getBoundingClientRect();
+    }
+    if (rect.height > availableHeight) {
+      menu.style.maxHeight = `${availableHeight}px`;
+      nextTop = inset;
+      menu.style.top = `${nextTop}px`;
+      selected.scrollIntoView({ block: "nearest" });
+      return;
+    }
+
+    if (rect.top < inset) {
+      nextTop += inset - rect.top;
+    }
+    rect = menu.getBoundingClientRect();
+    if (rect.bottom > window.innerHeight - inset) {
+      nextTop -= rect.bottom - (window.innerHeight - inset);
+    }
+    menu.style.top = `${nextTop}px`;
+  }
+
+  function scheduleSelectClamp() {
+    window.cancelAnimationFrame(selectClampFrame);
+    selectClampFrame = window.requestAnimationFrame(() => {
+      document.querySelectorAll(".select-menu.open").forEach(clampSelectMenu);
+    });
   }
 
   function calendarCells(monthDate, selectedKey) {
@@ -1019,12 +1088,7 @@
           <span class="select-chev" aria-hidden="true">${icon.chevronDown}</span>
         </button>
         <div class="select-menu ${open ? "open" : ""}" role="listbox" style="--selected-index: ${selectedIndex}">
-          ${statusOptions.map((option) => `
-            <button class="select-option ${option === value ? "selected" : ""}" type="button" role="option" aria-selected="${option === value}" data-stage-option="${escapeText(option)}" data-stage-application="${escapeText(application.id)}" data-stage-context="${context}">
-              <span>${escapeText(option)}</span>
-              <span class="select-check" aria-hidden="true">${option === value ? icon.check : ""}</span>
-            </button>
-          `).join("")}
+          ${selectOptionsHtml(statusOptions, value, (option) => `data-stage-option="${escapeText(option)}" data-stage-application="${escapeText(application.id)}" data-stage-context="${context}"`)}
         </div>
       </div>`;
   }
@@ -1089,6 +1153,7 @@
     els.pipelineMenuHint.textContent = empty ? "This is where your applications will live" : "View everything you have applied to.";
     els.allApplicationsLink.disabled = empty;
     els.pipelineList.innerHTML = empty ? pipelineEmpty() : applications.map(pipelineCard).join("");
+    scheduleSelectClamp();
   }
 
   function applicationCountText(count) {
@@ -1205,6 +1270,7 @@
           ${applications.length > 0 ? applications.map(applicationTableRow).join("") : '<tr><td colspan="8" class="table-empty">No applications here yet.</td></tr>'}
         </tbody>
       </table>`;
+    scheduleSelectClamp();
   }
 
   function toggleApplicationSort(key) {

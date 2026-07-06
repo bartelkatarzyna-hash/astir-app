@@ -959,12 +959,17 @@ h1 {
   top: calc((var(--space-2) + (var(--selected-index) * var(--input-height))) * -1);
   min-width: 100%;
   width: max-content;
+  overflow-y: auto;
   padding: var(--space-2);
 }
 
 .select-menu.open,
 .calendar-popover.open {
   display: block;
+}
+
+.select-menu.open {
+  position: fixed;
 }
 
 .select-option {
@@ -992,6 +997,12 @@ h1 {
 .select-option:hover {
   background: var(--hover-soft);
   color: var(--ink);
+}
+
+.select-separator {
+  height: var(--border-thin);
+  margin: var(--space-1) 0;
+  background: var(--line);
 }
 
 .select-check {
