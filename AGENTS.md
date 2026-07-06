@@ -149,3 +149,32 @@ Astir no longer has a living sphere or whisper line. Home's middle is made of tw
 2. Short, direct answers. No filler.
 3. If a request is ambiguous, ask one precise question rather than guessing.
 4. Speed over polish, within the system. Ship the change, keep the tokens clean.
+
+---
+
+## AGENTS.md amendment, July 2026: stack and build state
+
+Replace all stack references in this file with the following. Where older sections mention Next.js, TypeScript, Tailwind, or shadcn/ui, this section wins.
+
+### Stack (actual)
+
+1. Plain HTML, CSS, and JavaScript. No framework, no build step, no package.json.
+2. Files: `index.html` (shell), `app.js` (logic and screens), `styles.css` (components), `tokens.css` (all values). Screens are hash routes (`#today`, `#watchlist`).
+3. State persists in localStorage under the key `astir.v1`. No backend exists. Sample data lives in `app.js` (`defaultWatchlist`, `sampleRolesForCompany()`, `makeDemoPreset()`, `presetApplications()`).
+4. The rule "use shadcn components, never hand-roll" is retired. Components are hand-rolled on tokens. In exchange, every interactive component must meet this bar: full keyboard operation, visible focus states, Escape closes overlays, focus returns to the trigger on close, aria labels match tooltips.
+5. Prototype files (`astir-*.html`, `astir-components.svg`) are design reference only. They define look and behavior, never implementation. Do not copy their raw values into the app.
+
+### Screen status (keep current)
+
+1. Home: built and working (applications card, conditional heard back card, weekly goals).
+2. Watchlist: built and working.
+3. Pipeline: fully designed, not built. Nav item exists but is disabled.
+4. All applications (archive): designed, not built.
+5. Settings: not built.
+6. Naming: the add-job modal is called "Add application" everywhere, including code. "Add job" is retired vocabulary.
+
+### Token exceptions (named, closed list)
+
+1. Breakpoint: the app has exactly one breakpoint, 760px. CSS media queries cannot read custom properties, so the value stays raw, but it is documented at the top of tokens.css as `/* breakpoint: narrow = 760px (raw in media queries by necessity) */`. Any change to the breakpoint updates that comment and every media query together. No second breakpoint without a decision.
+2. SVG geometry (viewBox, path coordinates, arc gauge angles) in `app.js` is geometry, not styling, and is exempt from the tokens rule. Colors inside SVG are NOT exempt: they reference tokens.
+3. Anything else outside the scales still requires a named token before use.

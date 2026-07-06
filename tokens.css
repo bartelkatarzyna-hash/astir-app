@@ -1,3 +1,5 @@
+/* breakpoint: narrow = 760px (raw in media queries by necessity) */
+
 :root {
   --paper: #F7F3EB;
   --rail: #F0EAE0;
