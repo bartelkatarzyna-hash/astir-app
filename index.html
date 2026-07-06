@@ -19,7 +19,6 @@
       }
     }
   </script>
-  <script src="sphere.js" defer></script>
   <script src="app.js" defer></script>
   <script src="dev-agentation.js" defer></script>
 </head>
@@ -31,43 +30,72 @@
         <span class="name">Astir</span>
       </div>
       <nav class="nav">
-        <a class="active" href="index.html">Today</a>
-        <a href="#" aria-disabled="true">Watchlist</a>
+        <a class="active" href="#today" data-screen-link="today">Home</a>
+        <a href="#watchlist" data-screen-link="watchlist">Watchlist</a>
         <a href="#" aria-disabled="true">Pipeline</a>
       </nav>
       <div class="user"><span class="av" aria-hidden="true"></span>Kate</div>
     </aside>
 
     <main class="main">
-      <div class="today-head">
-        <div>
-          <h1 id="greeting">Good morning, Kate</h1>
+      <section class="screen active" id="screen-today" data-screen="today">
+        <div class="today-head">
+          <h1 id="greeting">Welcome, Kate</h1>
         </div>
-        <button class="btn solid" id="addJob" type="button">Add a job</button>
-      </div>
 
-      <section class="hero">
-        <canvas id="sphere" width="300" height="300" aria-label="Living sphere"></canvas>
-        <div class="whisper" id="whisper">Warm and steady. Today is still unwritten.</div>
+        <section class="home-card" aria-labelledby="applicationsLabel">
+          <div class="label" id="applicationsLabel">Applications</div>
+          <p class="home-card-copy">Applied somewhere? Add it here and let it go. It stays out of view until it moves.</p>
+          <div class="home-card-actions">
+            <button class="btn ghost" id="addApplication" type="button">Add application</button>
+          </div>
+        </section>
+
+        <section class="home-card" id="heardBackSection" aria-labelledby="heardBackLabel" hidden>
+          <div class="label" id="heardBackLabel">Heard back</div>
+          <p class="home-card-copy">A company replied? Mark it here and the role moves into your pipeline.</p>
+          <div class="home-card-actions">
+            <button class="btn solid" id="heardBack" type="button">I heard back</button>
+          </div>
+        </section>
+
+        <section class="goals-card" aria-labelledby="goalsLabel">
+          <div class="card-head">
+            <div class="label" id="goalsLabel">This week's goals</div>
+            <button class="text-action" id="editGoals" type="button" hidden>Edit</button>
+          </div>
+          <div id="goalsBody"></div>
+        </section>
       </section>
 
-      <section class="week" aria-labelledby="weekLabel">
-        <div class="label" id="weekLabel">This week</div>
-        <div class="days" id="weekDays"></div>
+      <section class="screen" id="screen-watchlist" data-screen="watchlist" hidden>
+        <div class="page-head">
+          <h1>Watchlist</h1>
+          <button class="btn ghost" id="addCompany" type="button">Add company</button>
+        </div>
+        <div class="watchlist" id="watchlistGroups"></div>
       </section>
 
     </main>
+  </div>
+
+  <div class="demo-panel" id="demoPanel" hidden>
+    <div class="demo-label">Preview states</div>
+    <div class="demo-label demo-sub-label">Home</div>
+    <div class="demo-actions" id="demoHomeActions"></div>
+    <div class="demo-label demo-sub-label">Week</div>
+    <div class="demo-actions" id="demoActions"></div>
   </div>
 
   <div class="modal-backdrop" id="jobBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="jobTitle">
       <div class="modal-head">
         <h2 id="jobTitle">Add application</h2>
-        <button class="icon-btn" id="closeJob" type="button" aria-label="Close">×</button>
       </div>
       <form id="jobForm">
+        <div class="modal-hint" id="jobWatchHint" hidden>Saving adds this to your applications and clears it from the watchlist.</div>
         <label>
-          <span>Link (optional)</span>
+          <span>Link <span class="optional-label">(optional)</span></span>
           <input name="link" type="url" autocomplete="url" placeholder="https://">
         </label>
         <label>
@@ -80,27 +108,104 @@
         </label>
         <div class="field-row">
           <label>
-            <span>Applied date</span>
-            <input name="appliedDate" type="date" required>
+            <span>Status</span>
+            <input name="status" type="hidden" value="Applied">
+            <div class="select-shell" id="statusSelect"></div>
           </label>
           <label>
-            <span>Status</span>
-            <select name="status">
-              <option>Applied</option>
-              <option>Interview</option>
-              <option>Offer</option>
-              <option>Closed</option>
-            </select>
+            <span>Applied date</span>
+            <input name="appliedDate" type="hidden" required>
+            <div class="date-shell" id="appliedDatePicker"></div>
           </label>
         </div>
+        <label>
+          <span>Note</span>
+          <textarea name="note" rows="3" placeholder="Anything you want to remember about this one"></textarea>
+        </label>
         <div class="modal-actions">
           <button class="btn ghost" id="cancelJob" type="button">Cancel</button>
-          <button class="btn solid" type="submit">Save application</button>
+          <button class="btn solid" type="submit">Add application</button>
         </div>
       </form>
     </section>
   </div>
 
+  <div class="modal-backdrop" id="heardBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="heardTitle">
+      <div class="modal-head heard-head">
+        <h2 id="heardTitle">I heard back</h2>
+        <p class="heard-support">Someone read your application and wrote back. Take a second with that.</p>
+      </div>
+      <div class="typeahead-wrap">
+        <input id="heardQuery" type="text" autocomplete="off" placeholder="Start typing a company name">
+        <div class="typeahead-menu" id="heardResults" hidden></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="cancelHeard" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="companyBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="companyTitle">
+      <div class="modal-head">
+        <h2 id="companyTitle">Add company</h2>
+      </div>
+      <form id="companyForm">
+        <label>
+          <span>Careers page link</span>
+          <input name="link" type="url" autocomplete="url" placeholder="https://...">
+        </label>
+        <label>
+          <span>Company name</span>
+          <input name="company" type="text" autocomplete="organization" required>
+          <span class="field-note" id="companyPrefillNote" hidden>Filled in from the link. Edit it if it looks off.</span>
+        </label>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelCompany" type="button">Cancel</button>
+          <button class="btn solid" type="submit">Add company</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="editCompanyBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="editCompanyTitle">
+      <div class="modal-head">
+        <h2 id="editCompanyTitle">Edit company</h2>
+      </div>
+      <form id="editCompanyForm">
+        <label>
+          <span>Careers page link</span>
+          <input name="link" type="url" autocomplete="url" placeholder="https://...">
+        </label>
+        <label>
+          <span>Company name</span>
+          <input name="company" type="text" autocomplete="organization" required>
+        </label>
+        <div class="modal-note">Role keywords apply to every company. Change them in Settings.</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelEditCompany" type="button">Cancel</button>
+          <button class="btn solid" type="submit">Save changes</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="removeCompanyBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="removeCompanyTitle">
+      <div class="modal-head">
+        <h2 id="removeCompanyTitle">Remove company?</h2>
+      </div>
+      <div class="modal-copy">Its open roles will no longer show here and alerts will stop. You can add the company again anytime.</div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="cancelRemoveCompany" type="button">Cancel</button>
+        <button class="btn ghost" id="confirmRemoveCompany" type="button">Remove</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="interaction-scrim" id="interactionScrim" hidden></div>
   <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
 </body>
 </html>
