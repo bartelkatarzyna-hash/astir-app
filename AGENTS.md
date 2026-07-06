@@ -9,19 +9,20 @@ You are building Astir with Kate. Read this fully before any change. It is the s
 A calm job-search companion. Core thesis: "apply and forget." Apply mindfully, log it, let go. The app only surfaces what is alive; everything else rests out of view.
 
 Non-negotiable product rules:
-1. No counts of applications anywhere, ever. No totals, no "14 applied," no streak numbers, no response rates.
+1. No outcome counts anywhere, ever: no totals of applications sent, no response rates, no rejection tallies, no streaks. Self-set weekly effort goals are the one exception: their count-up progress (numbers and arc gauges) may appear inside the This week's goals card on Home, and nowhere else.
 2. Pipeline shows only roles that progressed to interview stages. Applied and closed jobs are stored but hidden.
 3. The archive ("View all applications") is reachable but deliberately not easy (kebab menu on the Pipeline title, with a one-line explainer inside the menu).
-4. "I heard back!" is the only loud button in the app.
+4. "I heard back" is the only loud button in the app. It uses the shared primary button recipe. No icon, prefix, or heavier weight.
 5. Rest is a feature, not a gap. Rest and prep days count the same as applying.
 6. No guilt mechanics: nothing breaks, snaps, or shames. Absence makes things sleepy, never dead.
 
 ## 2. Screens
 
-1. **Today** (home): greeting, the living sphere (hero), whisper line, action row (Add a job solid button, then Prep day / Rest day chips), This week strip, In motion glance (max 2-3 items).
-2. **Watchlist**: companies with matched open roles. "Add company" ghost button. Each role row has a quiet "I applied" action opening the add-job modal prefilled. Companies with no matches say so gently.
-3. **Pipeline**: response-only. "I heard back!" hero button, kebab with archive link, cards for active pursuits (company, role, next step line, stage pill). Quiet closing line, no counts.
-4. **Add-job modal**: opens from Today and Watchlist. Link (optional), Company, Role, Applied date (default today), Status (default Applied). Saving logs the day, flares the sphere, shows snackbar "Application added. Today is done."
+1. **Home**: greeting, Applications card, conditional Heard back card, and the This week's goals card. No date line, sphere, whisper line, day check-in chips, week dot strip, or In motion glance. Greeting says "Welcome, [Name]" on first visit and "Welcome back, [Name]" after that, tracked in local storage.
+2. **Watchlist**: companies with matched open roles first, sorted by freshest match. Header has "Watchlist" and an "Add company" ghost button. Company rows include name, bell, and kebab management. Role rows include a flame for postings first seen in the last 48 hours, an open-posting icon, and an Add application icon that opens the shared add-application modal prefilled. Companies with no matches live in the quiet disclosure.
+3. **Pipeline**: response-only. "I heard back" hero button, kebab with archive link, cards for active pursuits (company, role, next step line, stage pill). Quiet closing line, no counts.
+4. **Add application modal**: opens from Home and Watchlist. Link, Company, Role, Status, Applied date, and optional Note. Watchlist-origin opens prefilled and includes the one-line hint. Saving logs the day's application activity and shows snackbar "Application added."
+5. **Heard back modal**: opens from Home after at least one application exists. Typeahead searches logged applications by company. Choosing a role moves it to 1st stage and shows a linked snackbar.
 
 ## 3. Design tokens (the only values allowed)
 
@@ -37,9 +38,10 @@ Everything below lives in one tokens file (tokens.css or the Tailwind theme). Co
 | --ink | #2E2A23 | headings, primary text |
 | --ink2 | #57503F | body text |
 | --muted | #8C8371 | secondary text, labels |
+| --placeholder | rgba(140,131,113,.72) | placeholder text |
 | --line | rgba(70,60,40,.10) | borders |
 | --line2 | rgba(70,60,40,.16) | input and chip borders |
-| --gold | #DFA83F | THE accent: solid buttons, the sphere, today ring |
+| --gold | #DFA83F | THE accent: solid buttons, today ring |
 | --gold-hover | #D69C31 | solid button hover |
 | --gold-deep | #C08F2B | gold icon strokes/fills on tints |
 | --gold-soft | rgba(223,168,63,.16) | applied tints, pills |
@@ -53,18 +55,22 @@ Everything below lives in one tokens file (tokens.css or the Tailwind theme). Co
 | --prep-soft | rgba(155,132,188,.18) | prep tints |
 | --prep-text | #6B5590 | text on prep-soft |
 | --prep-deep | #7D659F | prep icon strokes |
+| --docs | #7E9C99 | docs state |
+| --docs-soft | rgba(126,156,153,.16) | docs tints |
+| --docs-text | #4E706D | text on docs-soft |
+| --docs-deep | #5F827F | docs icon strokes |
 | --snack-bg | #3A342A | snackbar surface |
 | --snack-text | #F3EDE1 | snackbar text |
 
-Sphere particle colors (richer than UI accents, canvas only): gold #BA7C1E, rest #66855F, prep #8E76B4.
+Rail mini-orb colors: ember light #F0CE8B, ember mid #DCA246, ember deep #B87B1F.
 
 Rule: gold is the only accent that may appear solid. Rest and prep exist only as soft tints and states, never as buttons.
 
 ### 3.2 Spacing
 
-Scale: 4, 8, 12, 16, 24, 32, 48, 64. Nothing else. If a layout seems to need 20px, it needs 16 or 24.
+Scale: 2, 4, 8, 12, 16, 24, 32, 48, 64. Nothing else. If a layout seems to need 20px, it needs 16 or 24.
 
-Common applications: card padding 24-26px, gaps between buttons 8, section gaps 22-24, main content padding 44-56.
+Common applications: card padding 24px, gaps between buttons 8px, section gaps 24px, main content padding uses named page tokens.
 
 ### 3.3 Radius
 
@@ -79,49 +85,43 @@ Common applications: card padding 24-26px, gaps between buttons 8, section gaps 
 ### 3.4 Type
 
 Two fonts only:
-1. **Bricolage Grotesque** (display): h1 27px/600, modal title 19px/600, brand 17px/600. Never for body.
-2. **Instrument Sans** (everything else): body 14.5, controls 13.5/500, secondary 12.5, meta 12, tiny 11.5. Italic Instrument Sans for whisper/gentle lines (13.5, ink2 or ink).
+1. **Bricolage Grotesque** (display): h1 27px/600, modal title and brand 19px/600. Never for body.
+2. **Instrument Sans** (everything else): UI/body 14px, usually 400 or 500. Italic Instrument Sans is allowed for gentle supporting lines.
 
-Section labels: 12.5px, uppercase, letter-spacing .05em, muted.
-No third font. No Newsreader (reads as a Wispr Flow copy).
+Three font sizes total: h1 27px, display title 19px, UI/body 14px. Use color, weight, case, spacing, and layout for hierarchy instead of adding more sizes. Section labels use UI/body size, uppercase, letter-spacing .05em, muted. No third font. No Newsreader (reads as a Wispr Flow copy).
 
 ### 3.5 Elevation and motion
 
 Shadows: cards `0 1px 3px rgba(60,50,30,.04)`, menus `0 6px 24px rgba(60,50,30,.12)`, modal `0 18px 50px rgba(46,42,35,.22)`.
-Motion: eases, never snaps. Micro-transitions .2-.3s. Sphere flare ~1.4s ease-out. Respect prefers-reduced-motion everywhere (all ambient animation off).
+Motion: eases, never snaps. Micro-transitions .2-.3s. Rail mini-orb flare ~1.4s ease-out. Respect prefers-reduced-motion everywhere (all ambient animation off).
 
 ## 4. Components (build once, reuse always)
 
-1. **Solid button**: gold bg, on-gold text, pill radius, 9px 18px padding, 13.5/500. Only for "Add a job" and "I heard back!" (600 weight, ✦ prefix).
+1. **Primary button**: gold bg, on-gold text, pill radius, 9px 18px padding, 14/500. Used for primary actions such as "Add application" and "I heard back". No icon or special type treatment for text buttons.
 2. **Ghost button**: transparent, line2 border, ink2 text, same geometry.
-3. **Chip** (check-in): ghost geometry; selected state = state-soft bg, no border, state-text color.
-4. **Stage pill**: 11.5/500, 4px 11px, pill radius, state-soft bg + state-text.
-5. **Day dot**: 30px circle. applied = gold-soft bg + small star glyph (gold-deep); rest = rest-soft + leaf stroke; prep = prep-soft + book stroke; quiet = line2 ring only; today = gold ring. Never a number inside.
-6. **Card**: card bg, line border, r-lg, card shadow.
-7. **Row** (list item): card recipe with r-md, 14-18px padding.
-8. **Kebab menu**: 30px square trigger, menu = card surface with r-md, hint text (11.5 muted) above items.
-9. **Modal**: r-xl, 28px padding, backdrop rgba(46,42,35,.32). Esc and backdrop close. Inputs: paper bg, line2 border, 10px radius, gold focus ring.
-10. **Snackbar**: bottom-center, snack tokens, 11px radius, auto-dismiss ~3.5s, no progress bar.
-11. **Rail**: 200px, rail bg, active item = card bg + soft shadow. Brand = mini orb + "Astir" in display font.
+3. **Stage pill**: UI/body size at 500, compact pill padding, pill radius, state-soft bg + state-text.
+4. **Card**: card bg, line border, r-lg, card shadow.
+5. **Row** (list item): card recipe with r-md, 14-18px padding.
+6. **Icon controls**: icon-only controls always use real SVG/icon components in stable square or round boxes. Never use text glyphs such as `✓`, `⌄`, `⋯`, `+`, or arrows as UI icons. Icons default to muted unless they communicate state. Gold is reserved for active state icons, new/fresh state icons, and hover states.
+7. **Kebab menu**: 30px square trigger with a real three-dot SVG icon, menu = card surface with r-md, hint text in muted UI/body above items.
+8. **Modal**: r-xl, 32px padding, backdrop rgba(46,42,35,.32). No X close button. Close by Cancel, Esc, or backdrop click only. Inputs: 40px height, paper bg, line2 border, 10px radius, gold focus border with no glow. Field labels are UI/body at 400. Placeholder text uses the placeholder token at 400. If a select, menu, or date picker is open inside a modal, outside click closes that layer first and does not close the modal.
+9. **Select**: shared custom select over a hidden input. Trigger uses input recipe with a real down-chevron SVG. Open menu overlays the field so the selected option sits where the closed value was. Menu uses card surface, r-md, menu shadow, and UI/body size. Selected item is ink at 500 with a gold-deep SVG check on the right. Hover rows use hover-soft. Width is at least the field and may expand to fit the longest option on one line.
+10. **Date picker**: shared popover calendar anchored to the field. Surface uses menu recipe, 12px padding, fixed calendar width token. Header is month and year on one line with 26px round prev/next buttons. Week starts Monday. Day cells use the calendar day-size token, today is an inset gold ring, selected is solid gold with on-gold text, adjacent-month days use line2-colored text, hover is hover-soft. The trigger uses a real calendar SVG icon. The full month fits without scrolling.
+11. **Snackbar**: bottom-center, snack tokens, 11px radius, auto-dismiss ~3.5s, no progress bar.
+12. **Rail**: 200px, rail bg, active item = card bg + soft shadow. Brand = mini orb + "Astir" in display font.
+13. **Goal tile**: line border, r-md, compact centered column. Goals render four tiles per row on desktop. Gauge is a 96x56 SVG semicircle with line track and activity-deep sweep. Selected active goals show `current/target`, including over-target progress such as `7/5`; empty-state and unselected placeholder tiles show arcs and labels without counts. Labels are stable across empty, in-progress, and met states: Applications, Networking, Rest, Prep, CV and docs. Met state is shown by the completed arc only, with no tile background change. The info icon sits beside the label in light grey and uses the standard dark tooltip plus a small triangle pointing to the icon. Editable goal tiles show a subtle split hover control behind the tile content: a vertical line through the tile, minus on the left, plus on the right, and tokenized grey tint states for base hover, side hover, and active. Applications do not have tile controls because they come from application records.
+14. **Week setup row**: row border line, r-md, 10px 14px padding. Tapping toggles selection. Selected state uses gold-soft bg and gold-text label. Numeric selected rows show 22px round steppers.
 
-## 5. The living sphere (signature element)
+Open surfaces own interaction. When a modal, dropdown, select, or date picker is open, tooltips are hidden and hover states below that surface do not respond until it closes.
 
-Canvas particle sphere. It is a creature, not a chart.
+## 5. Home middle
 
-Behavior model, THE most important rule: **identity is always warm gold; today tints it; history never accumulates in it.**
-1. Default: gold particles drifting in layered wavy currents (no rigid rotation). Individual particles ride sine-field flows through the ball volume.
-2. Rest day: ~45% of particles wash to rest color, staggered over ~2.5s, pace slows (~0.55x), glow dims slightly.
-3. Prep day: same wash in prep lilac, pace ~0.8x.
-4. Application added: wash clears to full gold, warm flare (speed and glow pulse, ~1.4s decay).
-5. "I heard back!": the big flare, larger swell and longer decay. The one loud moment.
-6. Away for days: pace and glow reduce further (sleepy), never below visible breathing. Waking is gentle, no guilt copy.
-7. The sphere must NEVER encode quantity. No proportion of color may map to how many applications exist.
+Astir no longer has a living sphere or whisper line. Home's middle is made of two calm action cards.
 
-Reference implementation exists (Kate has the HTML prototypes): ~1200 particles, fibonacci-seeded, radius share 0.55-1.0, pre-rendered radial-gradient sprites per color, depth-sorted, alpha by depth, DPR-capped at 2. Keep 60fps; if perf suffers, reduce N before touching the look.
-
-Rail mini-orb: static gradient ember (CSS), soft halo breathing at ~6s, echoes flares only. No other reactions. The sphere lives ONLY on Today; nothing follows the user across screens.
-
-**Whisper line**: single italic sentence under the sphere. One voice: warm, brief, adult. Never chirpy, no exclamation marks except "I heard back!". This is also where gentle suggestions appear (e.g. after a long steady stretch: suggest a rest day, framed as earned, and it counts).
+1. **Applications card**: always visible. Label "Applications", helper copy, and ghost "Add application" button.
+2. **Heard back card**: visible only after at least one application has been logged. Label "Heard back", helper copy, and primary "I heard back" button.
+3. **This week's goals card**: remains below the Home action cards. Empty state shows copy "Set up your goals for this week" directly under the card title, a header ghost "Set up" action, and all goal tiles as disabled arcs without counts. In-progress state shows "You're doing great, keep it up!" under the card title. Completed state shows "You achieved all your week's goals. Congrats!" under the card title. Unselected goals remain visible as disabled placeholder tiles. Do not show a "Same as last week" action. Applications progress comes only from logged applications. Rest progress is automatic for completed past days with no activity, with a user minus override when an automatic rest day should not count. Networking, Prep, and CV and docs are manually tracked by clicking their tiles.
+4. **Rail mini-orb**: static gradient ember (CSS), soft halo breathing at ~6s, echoes application saves only. No other reactions.
 
 ## 6. Copy rules (apply to ALL strings, UI and code comments)
 
@@ -129,8 +129,8 @@ Rail mini-orb: static gradient ember (CSS), soft halo breathing at ~6s, echoes f
 2. Never use the word "land" except for physical ground.
 3. Never use the word "signal" except for the Signal app.
 4. Never use "resting" as a label for stored/applied jobs. (As a verb for rest days it is fine.)
-5. No counts in copy: no "X applied," "X in progress" for hidden items, no streak numbers.
-6. Sentence case. Plain verbs. Buttons say what happens: "Add application," not "Submit."
+5. No outcome counts in copy: no "X applied," "X in progress" for hidden items, no streak numbers. Weekly effort goal progress may use numbers only inside the This week's goals card on Home.
+6. Sentence case. Plain verbs. Buttons say what happens: "Add application," not "Submit." Do not use exclamation marks in buttons.
 7. Empty states are invitations, not apologies. Errors say what happened and what to do.
 
 ## 7. How to make changes (system discipline)

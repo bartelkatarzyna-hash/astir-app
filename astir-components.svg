@@ -54,7 +54,7 @@
     <circle cx="150" cy="292" r="18" fill="#DFA83F" opacity="0.28"/>
     <path transform="translate(138,280)" d="M12 2.6l1.9 6.1a1.4 1.4 0 0 0 .92.92L21 11.5l-6.18 1.88a1.4 1.4 0 0 0-.92.92L12 20.4l-1.9-6.1a1.4 1.4 0 0 0-.92-.92L3 11.5l6.18-1.88a1.4 1.4 0 0 0 .92-.92z" fill="#E8B54A"/>
   </g>
-  <text x="200" y="296" fill="#8C8371" font-size="11">Idle breathes at 5.5s. Flare on apply and on "I heard back!".</text>
+  <text x="200" y="296" fill="#8C8371" font-size="11">Idle breathes at 5.5s. Flare on apply and on "I heard back".</text>
 
   <!-- ===== buttons ===== -->
   <text x="40" y="360" fill="#8C8371" font-size="11" letter-spacing="1.5">BUTTONS</text>
@@ -73,7 +73,7 @@
   </g>
   <g id="btn-hero">
     <rect x="420" y="376" width="132" height="36" rx="18" fill="#DFA83F"/>
-    <text x="486" y="399" fill="#3A2E10" font-size="13" font-weight="600" text-anchor="middle">✦  I heard back!</text>
+    <text x="486" y="399" fill="#3A2E10" font-size="13" font-weight="600" text-anchor="middle">I heard back</text>
     <text x="486" y="428" fill="#8C8371" font-size="9" text-anchor="middle">the only loud button</text>
   </g>
 
