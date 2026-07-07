@@ -1,4 +1,4 @@
-# Astir Watchlist screen, implementation spec
+# Watchlist screen
 
 Source of truth for building the Watchlist in the app. Reference mock: astir-watchlist-v14.html. Everything here uses tokens from AGENTS.md section 3; no raw values in components. Where this spec names a component that shadcn provides (dropdown, popover, calendar, dialog, tooltip), use the shadcn component themed with our tokens. Do not hand-roll them from the mock's JS; the mock defines the look and behavior, not the implementation.
 
