@@ -156,8 +156,13 @@
     editCompanyBackdrop: document.getElementById("editCompanyBackdrop"),
     editCompanyForm: document.getElementById("editCompanyForm"),
     editGoals: document.getElementById("editGoals"),
+    cancelGoals: document.getElementById("cancelGoals"),
+    finishGoals: document.getElementById("finishGoals"),
     form: document.getElementById("jobForm"),
+    goalsBackdrop: document.getElementById("goalsBackdrop"),
     goalsBody: document.getElementById("goalsBody"),
+    goalsSetupBody: document.getElementById("goalsSetupBody"),
+    goalsSetupComplete: document.getElementById("goalsSetupComplete"),
     greeting: document.getElementById("greeting"),
     heardBack: document.getElementById("heardBack"),
     heardBackdrop: document.getElementById("heardBackdrop"),
@@ -196,12 +201,12 @@
   };
 
   let snackTimer;
-  let mode = "view";
   let draftGoals = [];
   let activeGoalControlId = "";
   let demoPreset = "";
   let demoState = null;
   let modalReturnFocus = null;
+  let goalsReturnFocus = null;
   let modalOrigin = "home";
   let activeCompanyId = "";
   let openMenuId = "";
@@ -469,14 +474,15 @@
     const minLeft = tooltipMinLeft();
     const maxAvailableWidth = Math.max(160, window.innerWidth - minLeft - inset);
     const maxLineWidth = tooltipNumber("--type-tooltip", 12) * 40;
+    const noArrowInset = tooltipLayer.classList.contains("no-arrow") ? tooltipNumber("--space-1", 4) : 0;
     tooltipBubble.style.maxWidth = `${Math.min(maxLineWidth, maxAvailableWidth)}px`;
 
     const bubbleRect = tooltipBubble.getBoundingClientRect();
     const anchorCenter = targetRect.left + targetRect.width / 2;
     const maxLeft = Math.max(minLeft, window.innerWidth - bubbleRect.width - inset);
     const left = Math.min(Math.max(anchorCenter - bubbleRect.width / 2, minLeft), maxLeft);
-    const belowTop = targetRect.bottom + shift + inset;
-    const aboveTop = targetRect.top - bubbleRect.height - shift - inset;
+    const belowTop = targetRect.bottom + shift + inset - noArrowInset;
+    const aboveTop = targetRect.top - bubbleRect.height - shift - inset + noArrowInset;
     const useAbove = belowTop + bubbleRect.height > window.innerHeight - inset && aboveTop >= inset;
 
     tooltipLayer.style.left = `${left}px`;
@@ -491,6 +497,7 @@
     if (!copy) return;
     activeTooltipTarget = target;
     tooltipBubble.textContent = copy;
+    tooltipLayer.classList.toggle("no-arrow", !target.dataset.infoTooltip);
     tooltipLayer.hidden = false;
     positionTooltip();
   }
@@ -827,8 +834,6 @@
   }
 
   function renderUnwritten() {
-    els.editGoals.hidden = true;
-    els.editGoals.textContent = "Set up";
     els.editGoals.hidden = false;
     els.goalsBody.innerHTML = `
       <div class="unwritten-line">Set up your goals for this week</div>
@@ -840,7 +845,6 @@
     const selectedById = new Map(goals.map((goal) => [goal.id, goal]));
     const allMet = goals.length > 0 && goals.every(isGoalMet);
     const support = allMet ? "You did it. Take a moment to savor it." : "You're doing great, keep it up.";
-    els.editGoals.textContent = "Edit";
     els.editGoals.hidden = false;
     els.goalsBody.innerHTML = `
       <div class="goals-support">${support}</div>
@@ -855,9 +859,13 @@
   }
 
   function startSetup() {
-    mode = "setup";
+    goalsReturnFocus = els.editGoals;
     draftGoals = cloneGoals(ensureWeek().goals);
-    render();
+    renderSetup();
+    els.goalsBackdrop.hidden = false;
+    syncSurfaceState();
+    const firstRow = els.goalsSetupBody.querySelector(".setup-row");
+    focusSafely(firstRow, els.finishGoals);
   }
 
   function goalFromId(id) {
@@ -890,24 +898,26 @@
     renderSetup();
   }
 
+  function closeGoalsModal() {
+    els.goalsBackdrop.hidden = true;
+    draftGoals = [];
+    focusSafely(goalsReturnFocus, els.editGoals);
+    goalsReturnFocus = null;
+    syncSurfaceState();
+  }
+
   function finishSetup() {
     const week = ensureWeek();
     week.goals = cloneGoals(draftGoals);
     if (week.goals.length > 0) {
       activeState().lastGoals = cloneGoals(week.goals);
     }
-    mode = "view";
+    els.goalsBackdrop.hidden = true;
+    focusSafely(goalsReturnFocus, els.editGoals);
+    goalsReturnFocus = null;
     saveState();
     render();
-  }
-
-  function applyLastGoals() {
-    const last = activeState().lastGoals || [];
-    if (last.length === 0) return;
-    ensureWeek().goals = cloneGoals(last);
-    mode = "view";
-    saveState();
-    render();
+    syncSurfaceState();
   }
 
   function renderSetupRow(id) {
@@ -918,14 +928,14 @@
     const label = info.name;
     const stepper = selected && info.type === "numeric"
       ? `<div class="setup-stepper">
-          <button class="setup-round" type="button" data-draft-adjust="${id}" data-delta="-1" aria-label="Decrease ${info.name}">&minus;</button>
+          <button class="setup-round" type="button" data-draft-adjust="${id}" data-delta="-1" aria-label="Decrease ${info.name}">${icon.minus}</button>
           <span>${goal.target}</span>
-          <button class="setup-round" type="button" data-draft-adjust="${id}" data-delta="1" aria-label="Increase ${info.name}">+</button>
+          <button class="setup-round" type="button" data-draft-adjust="${id}" data-delta="1" aria-label="Increase ${info.name}">${icon.plus}</button>
         </div>`
       : "";
 
     return `
-      <div class="setup-row${selectedClass}" data-draft-toggle="${id}">
+      <div class="setup-row${selectedClass}" data-draft-toggle="${id}" role="button" tabindex="0" aria-pressed="${selected ? "true" : "false"}">
         <span>${label}</span>
         ${stepper}
       </div>`;
@@ -933,21 +943,11 @@
 
   function renderSetup() {
     const allSelected = draftGoals.length === activityOrder.length;
-    els.editGoals.hidden = true;
-    els.goalsBody.innerHTML = `
-      <div class="setup-hint">Pick what this week is for. Numbers are yours to set, and only you see them.</div>
-      <div class="setup-list">${activityOrder.map(renderSetupRow).join("")}</div>
-      <div class="setup-footer">
-        <button class="btn ghost" type="button" data-finish-setup>Done</button>
-        <div class="setup-complete" ${allSelected ? "" : "hidden"}>That is the whole list</div>
-      </div>`;
+    els.goalsSetupBody.innerHTML = activityOrder.map(renderSetupRow).join("");
+    els.goalsSetupComplete.hidden = !allSelected;
   }
 
   function renderGoalsCard() {
-    if (mode === "setup") {
-      renderSetup();
-      return;
-    }
     if (ensureWeek().goals.length === 0) {
       renderUnwritten();
     } else {
@@ -1524,9 +1524,6 @@
     document.querySelectorAll("[data-applications-crumb]").forEach((link) => {
       link.setAttribute("aria-current", screenName === "applications" ? "page" : "false");
     });
-    if (screenName !== "today") {
-      mode = "view";
-    }
   }
 
   function focusSafely(target, fallback = null) {
@@ -2231,7 +2228,6 @@
   function setDemoPreset(name) {
     demoPreset = name;
     demoState = makeDemoPreset(name);
-    mode = "view";
     renderDemoButtons();
     render();
     if (name.startsWith("pipeline") && window.location.hash !== "#pipeline") {
@@ -2290,14 +2286,14 @@
   }
 
   function activeModal() {
-    return [els.backdrop, els.heardBackdrop, els.companyBackdrop, els.editCompanyBackdrop, els.removeCompanyBackdrop, els.deleteApplicationBackdrop, els.hiredBackdrop].find((backdrop) => !backdrop.hidden);
+    return [els.backdrop, els.heardBackdrop, els.goalsBackdrop, els.companyBackdrop, els.editCompanyBackdrop, els.removeCompanyBackdrop, els.deleteApplicationBackdrop, els.hiredBackdrop].find((backdrop) => !backdrop.hidden);
   }
 
   function trapFocus(event) {
     if (event.key !== "Tab") return;
     const backdrop = activeModal();
     if (!backdrop) return;
-    const focusable = Array.from(backdrop.querySelectorAll("button, input, select, textarea")).filter((item) => !item.disabled && item.offsetParent !== null);
+    const focusable = Array.from(backdrop.querySelectorAll("button, input, select, textarea, [tabindex]")).filter((item) => !item.disabled && item.offsetParent !== null && item.tabIndex >= 0);
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -2355,6 +2351,8 @@
     });
     els.cancelHeard.addEventListener("click", closeHeardModal);
     els.cancelJob.addEventListener("click", closeModal);
+    els.cancelGoals.addEventListener("click", closeGoalsModal);
+    els.finishGoals.addEventListener("click", finishSetup);
     els.cancelCompany.addEventListener("click", closeCompanyModal);
     els.cancelEditCompany.addEventListener("click", closeEditCompany);
     els.cancelRemoveCompany.addEventListener("click", closeRemoveCompany);
@@ -2375,6 +2373,9 @@
     });
     els.heardBackdrop.addEventListener("click", (event) => {
       if (event.target === els.heardBackdrop) closeHeardModal();
+    });
+    els.goalsBackdrop.addEventListener("click", (event) => {
+      if (event.target === els.goalsBackdrop) closeGoalsModal();
     });
     els.companyBackdrop.addEventListener("click", (event) => {
       if (event.target === els.companyBackdrop) closeCompanyModal();
@@ -2400,6 +2401,7 @@
       }
       if (event.key === "Escape" && !els.backdrop.hidden) closeModal();
       if (event.key === "Escape" && !els.heardBackdrop.hidden) closeHeardModal();
+      if (event.key === "Escape" && !els.goalsBackdrop.hidden) closeGoalsModal();
       if (event.key === "Escape" && !els.companyBackdrop.hidden) closeCompanyModal();
       if (event.key === "Escape" && !els.editCompanyBackdrop.hidden) closeEditCompany();
       if (event.key === "Escape" && !els.removeCompanyBackdrop.hidden) closeRemoveCompany();
@@ -2700,14 +2702,9 @@
     });
 
     els.goalsBody.addEventListener("click", (event) => {
-      const shape = event.target.closest("[data-shape-week]");
-      const same = event.target.closest("[data-same-week]");
-      const finish = event.target.closest("[data-finish-setup]");
       const info = event.target.closest("[data-info-tooltip]");
       const increment = event.target.closest("[data-increment-goal]");
       const decrement = event.target.closest("[data-decrement-goal]");
-      const draftAdjust = event.target.closest("[data-draft-adjust]");
-      const draftToggle = event.target.closest("[data-draft-toggle]");
 
       if (info) return;
       if (increment) {
@@ -2722,15 +2719,23 @@
         decrementGoal(decrement.dataset.decrementGoal);
         return;
       }
-      if (shape) startSetup();
-      if (same) applyLastGoals();
-      if (finish) finishSetup();
+    });
+    els.goalsSetupBody.addEventListener("click", (event) => {
+      const draftAdjust = event.target.closest("[data-draft-adjust]");
+      const draftToggle = event.target.closest("[data-draft-toggle]");
       if (draftAdjust) {
         event.stopPropagation();
         adjustDraft(draftAdjust.dataset.draftAdjust, Number(draftAdjust.dataset.delta));
-      } else if (draftToggle && mode === "setup") {
+      } else if (draftToggle) {
         toggleDraft(draftToggle.dataset.draftToggle);
       }
+    });
+    els.goalsSetupBody.addEventListener("keydown", (event) => {
+      if (event.target.closest("[data-draft-adjust]")) return;
+      const draftToggle = event.target.closest("[data-draft-toggle]");
+      if (!draftToggle || !["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      toggleDraft(draftToggle.dataset.draftToggle);
     });
     els.goalsBody.addEventListener("pointerout", (event) => {
       const tile = event.target.closest(".goal-tile.control-active");

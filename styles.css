@@ -266,12 +266,13 @@ h1 {
 .card-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  justify-content: flex-start;
+  gap: var(--space-1);
+  margin-bottom: var(--r-lg);
 }
 
 .card-head .label {
-  margin-bottom: var(--r-lg);
+  margin-bottom: 0;
 }
 
 .text-action {
@@ -420,11 +421,26 @@ h1 {
   background: var(--hover-soft);
 }
 
+.setup-round svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .goal-empty-actions,
 .setup-footer {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+}
+
+.goals-modal .setup-footer {
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .goal-info {
@@ -557,6 +573,11 @@ h1 {
   border-color: transparent;
   background: var(--gold-soft);
   color: var(--gold-text);
+}
+
+.setup-row:focus-visible {
+  border-color: var(--gold);
+  outline: none;
 }
 
 .setup-stepper {
@@ -793,6 +814,17 @@ h1 {
   height: var(--watch-action-icon-size);
 }
 
+.round-icon.goal-edit-action {
+  flex-basis: var(--menu-trigger);
+  width: var(--menu-trigger);
+  height: var(--menu-trigger);
+}
+
+.round-icon.goal-edit-action svg {
+  width: var(--watch-action-icon-size);
+  height: var(--watch-action-icon-size);
+}
+
 .round-icon.bell.on,
 .round-icon.small:hover {
   color: var(--gold-deep);
@@ -800,6 +832,13 @@ h1 {
 
 .round-icon:hover {
   background: var(--hover-soft);
+}
+
+.round-icon:focus-visible {
+  background: transparent;
+  color: var(--gold-deep);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--gold);
+  outline: none;
 }
 
 .round-icon.bell.on:hover,
@@ -1616,6 +1655,10 @@ h1 {
   border-top: var(--space-2) solid var(--snack-bg);
   border-bottom: 0;
   transform: translate(-50%, 0);
+}
+
+.tooltip-layer.no-arrow .tooltip-arrow {
+  display: none;
 }
 
 .tooltip-bubble {

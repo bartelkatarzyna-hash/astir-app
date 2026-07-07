@@ -62,7 +62,9 @@
         <section class="goals-card" aria-labelledby="goalsLabel">
           <div class="card-head">
             <div class="label" id="goalsLabel">This week's goals</div>
-            <button class="text-action" id="editGoals" type="button" hidden>Edit</button>
+            <button class="round-icon add-application goal-edit-action" id="editGoals" type="button" aria-label="Edit" data-tooltip="Edit" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </button>
           </div>
           <div id="goalsBody"></div>
         </section>
@@ -189,6 +191,21 @@
       </div>
       <div class="modal-actions">
         <button class="btn ghost" id="cancelHeard" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="goalsBackdrop" hidden>
+    <section class="modal goals-modal" role="dialog" aria-modal="true" aria-labelledby="goalsModalTitle">
+      <div class="modal-head">
+        <h2 id="goalsModalTitle">Edit goals</h2>
+      </div>
+      <div class="setup-hint">Pick what this week is for. Numbers are yours to set, and only you see them.</div>
+      <div class="setup-list" id="goalsSetupBody"></div>
+      <div class="setup-footer">
+        <button class="btn ghost" id="cancelGoals" type="button">Cancel</button>
+        <button class="btn solid" id="finishGoals" type="button">Save</button>
+        <div class="setup-complete" id="goalsSetupComplete" hidden>That is the whole list</div>
       </div>
     </section>
   </div>

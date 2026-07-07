@@ -11,7 +11,7 @@ Greeting h1: "Good morning/afternoon/evening, {name}".
 The living sphere, floating directly on the paper background. No card, no border, no container.
 Whisper line under the sphere (normal Instrument Sans, ink2, centered).
 One ghost button, centered: "Log application". Opens the existing log-application modal.
-Card "This week's goals" (card recipe: card bg, line border, r-lg 14, card shadow, 22px x 26px padding). Section label 12.5px uppercase muted with an "Edit" text action right-aligned (12px, muted, hover ink2).
+Card "This week's goals" (card recipe: card bg, line border, r-lg 14, card shadow, 22px x 26px padding). Section label uppercase muted with a persistent icon-only "Edit" action directly beside it in view states. The action uses the shared round icon control, a light pencil-line SVG, muted default color, gold hover, visible focus without the hover fill, and the hover label "Edit" without a triangle.
 
 
 Removed from Home, do not re-add: the In motion glance, the prep/rest/activity chip row, the Mon-Sun day dot strip.
@@ -41,9 +41,9 @@ Progress counts up from what is logged. Once a goal's target is reached it is "m
 4. Goals card states
 
 
-Unwritten (no goals set, includes first run): line "Set up your goals for this week" (normal muted helper copy), then disabled goal tiles at 45% opacity with empty tracks, stable labels, and no numbers. Disabled tiles show info icons without hover tooltips. No Edit action in the label while unwritten.
-Active: grid of goal tiles (section 5). Edit action visible.
-Setup/edit (section 6).
+Unwritten (no goals set, includes first run): line "Set up your goals for this week" (normal muted helper copy), then disabled goal tiles at 45% opacity with empty tracks, stable labels, and no numbers. Disabled tiles show info icons without hover tooltips. The persistent icon-only Edit action is visible in the card header. Do not show a text "Set up" action.
+Active: grid of goal tiles (section 5). The persistent icon-only Edit action is visible in the card header. Do not show a text "Edit" action.
+Setup/edit modal (section 6).
 
 
 5. Goal tile
@@ -70,12 +70,12 @@ Grid: 3 columns, gap 12. 1 goal = 1 column, 2 = 2 columns, 4 = 2x2, 5 = three on
 6. Setup and edit flow
 
 
-Entry: "Shape the week" (unwritten state) or "Edit" (active state). Replaces the card body in place; no modal.
+Entry: the persistent icon-only "Edit" action in the card header. Opens the Edit goals modal. The card body does not switch into setup mode.
 Hint: "Pick what this week is for. Numbers are yours to set, and only you see them." (12.5px muted)
 One row per activity (all five, fixed order: apply, net, prep, docs, rest): row border line, r-md, 10px 14px, tap toggles selection. Selected: --gold-soft bg, label --gold-text. Numeric rows show a stepper (minus, value, plus, 22px round buttons) only while selected; the row label re-renders live with the number ("Apply to 6 jobs").
-Footer: ghost button "Done", text action "Same as last week" (restores previous week's goal set and targets), and a right-aligned note "That is the whole list" shown only when all five are selected.
+Footer: right-aligned ghost "Cancel", solid "Save", and the note "That is the whole list" shown only when all five are selected. Do not show "Same as last week."
 Editing mid-week keeps existing logged counts; changing a target re-evaluates met state from the same counts. Removing a goal does not delete its logs.
-Leaving setup with nothing selected returns to the unwritten state. Legal, quiet, never questioned.
+Saving with nothing selected returns to the unwritten state. Legal, quiet, never questioned. Cancel, Esc, and backdrop click close the modal without saving and return focus to the Edit action.
 
 
 7. Whisper lines (v1 set)
