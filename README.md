@@ -1,6 +1,8 @@
 # Astir
 
 A job search app built on one belief: focus only on what you control, and make everything else disappear.
+<img width="994" height="501" alt="image" src="https://github.com/user-attachments/assets/27e5491c-fa1e-4945-bb86-162f15ef9721" />
+
 
 ## The idea
 
