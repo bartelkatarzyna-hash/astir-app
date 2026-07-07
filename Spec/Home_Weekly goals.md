@@ -55,7 +55,7 @@ Gauge: 96x56 SVG semicircle, radius 40, stroke width 8, round caps. Track stroke
 Gauge center, in progress: count (19px, 600, ink) over "of {target}" (11px muted). Binary goals in progress show "not yet" (11px muted) and no number.
 Label under the gauge: the goal phrase (12.5px, 500, ink2), e.g. "Apply to 5 jobs", "Reach out to 3 people", "Two rest days", "Prep for interviews", "Finish CV and profile".
 Met state: tile bg --gold-soft, border transparent, label color --gold-text, sweep full, center replaced by a check glyph stroked in the activity deep color. Numbers do not return.
-Note lines are retired. Goal tiles use labels, gauges, and info icons only.
+Note lines are retired. Goal tiles use labels, gauges, and info icons only. The label and info icon sit in one full-width centered row, so the combined visible label cluster stays centered when copy or spacing changes. The info icon box is the icon size, not a larger control box, with only the goal title gap between label and icon.
 Controls row (min-height reserved so tiles align):
 
 net: two 24px round ghost icon buttons, minus and plus. Plus increments and triggers a small sphere flare; minus decrements to a floor of 0. Both remain available after the goal is met.

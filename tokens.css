@@ -45,7 +45,7 @@
   --tile-control-hover: rgba(70,60,40,.07);
   --tile-control-active: rgba(70,60,40,.11);
   --goal-content-fade: .22;
-  --goal-title-gap: 0px;
+  --goal-title-gap: 2px;
   --goal-control-breathing-space: 8px;
   --backdrop: rgba(46,42,35,.32);
   --shadow-card: 0 1px 3px rgba(60,50,30,.04);

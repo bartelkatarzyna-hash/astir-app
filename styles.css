@@ -311,10 +311,6 @@ h1 {
   gap: var(--space-3);
 }
 
-.ghost-grid {
-  margin-bottom: var(--space-4);
-}
-
 .goal-tile {
   position: relative;
   display: flex;
@@ -387,9 +383,10 @@ h1 {
 .goal-title-row {
   position: relative;
   z-index: 3;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-width: 0;
   gap: var(--goal-title-gap);
   transition: opacity .2s ease;
@@ -433,9 +430,9 @@ h1 {
 .goal-info {
   position: relative;
   display: grid;
-  flex: 0 0 var(--watch-title-action-size);
-  width: var(--watch-title-action-size);
-  height: var(--watch-title-action-size);
+  flex: 0 0 var(--icon-size);
+  width: var(--icon-size);
+  height: var(--icon-size);
   place-items: center;
   color: currentColor;
   cursor: default;
