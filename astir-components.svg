@@ -130,7 +130,7 @@
   </g>
   <g id="pill-screen">
     <rect x="244" y="686" width="112" height="24" rx="12" fill="#DFA83F" opacity="0.16"/>
-    <text x="300" y="702" fill="#8A6416" font-size="11" font-weight="500" text-anchor="middle">Recruiter screen</text>
+    <text x="300" y="702" fill="#8A6416" font-size="11" font-weight="500" text-anchor="middle">Intro screen</text>
   </g>
   <g id="pill-new">
     <rect x="370" y="686" width="44" height="20" rx="10" fill="#DFA83F" opacity="0.16"/>
@@ -139,7 +139,7 @@
 
   <!-- ===== type ===== -->
   <text x="40" y="770" fill="#8C8371" font-size="11" letter-spacing="1.5">TYPE</text>
-  <text x="40" y="806" fill="#2E2A23" font-size="27" font-weight="600" font-family="Bricolage Grotesque, sans-serif">Good morning, Kate</text>
+  <text x="40" y="806" fill="#2E2A23" font-size="27" font-weight="600" font-family="Bricolage Grotesque, sans-serif">Good morning, Alex</text>
   <text x="40" y="826" fill="#8C8371" font-size="10">display, Bricolage Grotesque 600, 27px</text>
   <text x="40" y="856" fill="#57503F" font-size="14">One good application, then let it go.</text>
   <text x="40" y="876" fill="#8C8371" font-size="10">body, Instrument Sans 400, 14px, ink2</text>
@@ -152,8 +152,8 @@
   <text x="40" y="1024" fill="#8C8371" font-size="11" letter-spacing="1.5">CARD + ROW</text>
   <g id="card">
     <rect x="40" y="1038" width="360" height="72" rx="14" fill="#FFFDF8" stroke="#E7E0D2"/>
-    <text x="60" y="1068" fill="#2E2A23" font-size="14" font-weight="500">Enpal</text>
-    <text x="60" y="1086" fill="#8C8371" font-size="12">Senior Product Manager, Energy Platform</text>
+    <text x="60" y="1068" fill="#2E2A23" font-size="14" font-weight="500">Acme Corp</text>
+    <text x="60" y="1086" fill="#8C8371" font-size="12">Senior Product Manager, Workflow Systems</text>
     <rect x="288" y="1058" width="94" height="24" rx="12" fill="#8496AB" opacity="0.18"/>
     <text x="335" y="1074" fill="#4E637C" font-size="11" font-weight="500" text-anchor="middle">2nd interview</text>
   </g>

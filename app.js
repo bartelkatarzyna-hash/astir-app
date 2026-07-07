@@ -18,32 +18,31 @@
     chevron: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
     chevronDown: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9.5l5 5 5-5"/></svg>',
     check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2 8.8-9.4"/></svg>',
-    flame: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21c3.3 0 5.8-2.4 5.8-5.6 0-2.2-1.2-4.1-3.1-5.7-.5 1.7-1.5 2.7-2.6 3.4.2-3-1.1-5.2-3.2-7.1-.2 3.4-2.7 5.6-2.7 9.4C6.2 18.6 8.7 21 12 21z"/></svg>',
     kebab: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6.8" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="17.2" r="1.7"/></svg>',
     info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>',
     minus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>',
-    open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+    open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5h4v4"/><path d="M19 5l-9 9"/><path d="M18 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
     plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
   };
   const defaultWatchlist = [
     {
-      id: "company-enpal",
-      company: "Enpal",
-      link: "https://enpal.com/careers",
+      id: "company-acme",
+      company: "Acme Corp",
+      link: "https://example.com/acme-careers",
       alerts_on: true,
       roles: [
         {
-          id: "role-enpal-home-energy",
-          title: "Senior Product Manager, Home Energy",
-          url: "https://enpal.com/careers/role",
+          id: "role-acme-workflow",
+          title: "Senior Product Manager, Workflow Systems and Customer Lifecycle Growth",
+          url: "https://example.com/acme-careers/product-manager",
           first_seen: relativeIso(-8),
           is_live: true,
           locations: [{ city: "Berlin", mode: "Hybrid" }]
         },
         {
-          id: "role-enpal-installer-tools",
-          title: "Product Manager, Installer Tools and Field Operations Enablement",
-          url: "https://enpal.com/careers/role",
+          id: "role-acme-field-tools",
+          title: "Product Manager, Field Tools and Operations Enablement",
+          url: "https://example.com/acme-careers/field-tools",
           first_seen: relativeIso(-90),
           is_live: true,
           locations: [{ city: "Berlin", mode: "On-site" }]
@@ -51,15 +50,15 @@
       ]
     },
     {
-      id: "company-aiven",
-      company: "Aiven",
-      link: "https://aiven.io/careers",
+      id: "company-brightbyte",
+      company: "Brightbyte Labs",
+      link: "https://example.com/brightbyte-careers",
       alerts_on: true,
       roles: [
         {
-          id: "role-aiven-developer-experience",
+          id: "role-brightbyte-developer-experience",
           title: "Staff Product Manager, Developer Experience",
-          url: "https://aiven.io/careers/role",
+          url: "https://example.com/brightbyte-careers/developer-experience",
           first_seen: relativeIso(-10),
           is_live: true,
           locations: [
@@ -75,15 +74,15 @@
       ]
     },
     {
-      id: "company-klarna",
-      company: "Klarna",
-      link: "https://klarna.com/careers",
+      id: "company-meadowworks",
+      company: "MeadowWorks",
+      link: "https://example.com/meadowworks-careers",
       alerts_on: false,
       roles: [
         {
-          id: "role-klarna-payments",
-          title: "Product Lead, Payments Experience",
-          url: "https://klarna.com/careers/role",
+          id: "role-meadowworks-member-experience",
+          title: "Product Lead, Member Experience",
+          url: "https://example.com/meadowworks-careers/member-experience",
           first_seen: relativeIso(-12),
           is_live: true,
           locations: [{ city: "Stockholm", mode: "Hybrid" }]
@@ -317,7 +316,7 @@
   function shouldUseFreshWatchlistSeed(saved) {
     if (!Array.isArray(saved.watchlist)) return true;
     const ids = saved.watchlist.map((company) => company.id).sort().join(",");
-    return ids === "company-1password,company-tresorit,company-vanta" || ids === "company-aiven,company-enpal,company-klarna";
+    return ids === "company-acme,company-brightbyte,company-meadowworks";
   }
 
   function loadState() {
@@ -668,7 +667,7 @@
   }
 
   function setGreeting() {
-    els.greeting.textContent = state.hasVisited ? "Welcome back, Kate" : "Welcome, Kate";
+    els.greeting.textContent = state.hasVisited ? "Welcome back, Alex" : "Welcome, Alex";
     if (!state.hasVisited) {
       state.hasVisited = true;
       saveState();
@@ -1008,15 +1007,15 @@
 
   function roleRow(company, role) {
     const fresh = isFresh(role)
-      ? `<span class="flame-slot has-flame" data-tooltip="New">${icon.flame}</span>`
-      : '<span class="flame-slot"></span>';
+      ? '<span class="role-new-chip">New</span>'
+      : "";
     return `
       <div class="watch-role" data-role-id="${escapeText(role.id)}">
-        ${fresh}
         <div class="role-main">
           <div class="role-title-line">
             <span class="role-name" title="${escapeText(role.title)}">${escapeText(role.title)}</span>
             <button class="round-icon small" type="button" data-open-role="${escapeText(role.url)}" aria-label="Open posting" data-tooltip="Open posting">${icon.open}</button>
+            ${fresh}
           </div>
           <div class="role-loc">${locationLabel(role)}</div>
         </div>
@@ -2087,28 +2086,28 @@
   function demoPipelineApplications() {
     return [
       demoApplication({
-        id: "demo-pipeline-aiven",
-        postingId: "role-aiven-developer-experience",
-        companyId: "company-aiven",
-        link: "https://aiven.io/careers/role",
-        company: "Aiven",
+        id: "demo-pipeline-brightbyte",
+        postingId: "role-brightbyte-developer-experience",
+        companyId: "company-brightbyte",
+        link: "https://example.com/brightbyte-careers/developer-experience",
+        company: "Brightbyte Labs",
         role: "Staff Product Manager, Developer Experience",
         appliedDate: toDateKey(addDays(today, -6)),
         status: "1st stage",
         stageChangedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        note: "Recruiter screen next week."
+        note: "Prepare examples for the first conversation."
       }),
       demoApplication({
-        id: "demo-pipeline-enpal",
-        postingId: "role-enpal-home-energy",
-        companyId: "company-enpal",
-        link: "https://enpal.com/careers/role",
-        company: "Enpal",
-        role: "Senior Product Manager, Home Energy",
+        id: "demo-pipeline-acme",
+        postingId: "role-acme-workflow",
+        companyId: "company-acme",
+        link: "https://example.com/acme-careers/product-manager",
+        company: "Acme Corp",
+        role: "Senior Product Manager, Workflow Systems and Customer Lifecycle Growth",
         appliedDate: toDateKey(addDays(today, -9)),
         status: "2nd stage",
         stageChangedAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
-        note: "Prep examples around field ops."
+        note: "Review examples around operations workflows."
       })
     ];
   }
@@ -2117,18 +2116,18 @@
     return [
       ...demoPipelineApplications(),
       demoApplication({
-        id: "demo-archive-klarna",
-        postingId: "role-klarna-payments",
-        companyId: "company-klarna",
-        link: "https://klarna.com/careers/role",
-        company: "Klarna",
-        role: "Product Lead, Payments Experience",
+        id: "demo-archive-meadowworks",
+        postingId: "role-meadowworks-member-experience",
+        companyId: "company-meadowworks",
+        link: "https://example.com/meadowworks-careers/member-experience",
+        company: "MeadowWorks",
+        role: "Product Lead, Member Experience",
         appliedDate: toDateKey(addDays(today, -15)),
         status: "Applied"
       }),
       demoApplication({
         id: "demo-archive-closed",
-        company: "Northstar",
+        company: "Northstar Studio",
         role: "Senior Product Manager",
         appliedDate: toDateKey(addDays(today, -22)),
         status: "Closed"

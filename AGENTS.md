@@ -19,7 +19,7 @@ Non-negotiable product rules:
 ## 2. Screens
 
 1. **Home**: greeting, Applications card, conditional Screenings card, and the This week's goals card. No date line, sphere, whisper line, day check-in chips, week dot strip, or In motion glance. Greeting says "Welcome, [Name]" on first visit and "Welcome back, [Name]" after that, tracked in local storage.
-2. **Watchlist**: companies with matched open roles first, sorted by freshest match. Header has "Watchlist" and an "Add company" ghost button. Company rows include name, bell, and kebab management. Role rows include a flame for postings first seen in the last 48 hours, an open-posting icon, and a Log application icon that opens the shared log-application modal prefilled. Companies with no matches live in the quiet disclosure.
+2. **Watchlist**: companies with matched open roles first, sorted by freshest match. Header has "Watchlist" and an "Add company" ghost button. Company rows include name, bell, and kebab management. Role rows align with the company name and include the role title, open-posting icon, a "New" chip for postings first seen in the last 48 hours, and a Log application icon that opens the shared log-application modal prefilled. Companies with no matches live in the quiet disclosure.
 3. **Pipeline**: response-only. "Move to pipeline" ghost button, kebab with archive link, cards for active pursuits (company, role, next step line, stage pill). Quiet closing line, no counts. Hired roles remain visible in Pipeline for now.
 4. **Log application modal**: opens from Home and Watchlist. Link, Company, Role, Status, Applied date, and optional Note. Watchlist-origin opens prefilled and includes the one-line hint. Saving logs the day's application activity and shows snackbar "Application logged."
 5. **Move to pipeline modal**: opens from Home after at least one application exists. Typeahead searches logged applications by company. Choosing a role moves it to 1st stage and shows a linked snackbar.
@@ -88,7 +88,7 @@ Two fonts only:
 1. **Bricolage Grotesque** (display): h1 27px/600, modal title and brand 19px/600. Never for body.
 2. **Instrument Sans** (everything else): UI/body 14px, usually 400 or 500. Helper and support copy is normal, not italic.
 
-Three font sizes total: h1 27px, display title 19px, UI/body 14px. Use color, weight, case, spacing, and layout for hierarchy instead of adding more sizes. Section labels use UI/body size, uppercase, letter-spacing .05em, muted. No third font. No Newsreader (reads as a Wispr Flow copy).
+Three font sizes total: h1 27px, display title 19px, UI/body 14px. Use color, weight, case, spacing, and layout for hierarchy instead of adding more sizes. Section labels use UI/body size, uppercase, letter-spacing .05em, muted. Closed exception: Watchlist "New" chips use `--type-chip`, 12px. No third font. No Newsreader (reads as a Wispr Flow copy).
 
 ### 3.5 Elevation and motion
 
@@ -164,7 +164,7 @@ Replace all stack references in this file with the following. Where older sectio
 2. Files: `index.html` (shell), `app.js` (logic and screens), `styles.css` (components), `tokens.css` (all values). Screens are hash routes (`#today`, `#watchlist`, `#pipeline`, `#applications`).
 3. State persists in localStorage under the key `astir.v1`. No backend exists. Sample data lives in `app.js` (`defaultWatchlist`, `sampleRolesForCompany()`, `makeDemoPreset()`, `presetApplications()`).
 4. The rule "use shadcn components, never hand-roll" is retired. Components are hand-rolled on tokens. In exchange, every interactive component must meet this bar: full keyboard operation, visible focus states, Escape closes overlays, focus returns to the trigger on close, aria labels match tooltips.
-5. Prototype files (`astir-*.html`, `astir-components.svg`) are design reference only. They define look and behavior, never implementation. Do not copy their raw values into the app.
+5. Prototype files (`experiments/astir-*.html`, `astir-components.svg`) are design reference only. They define look and behavior, never implementation. Do not copy their raw values into the app.
 
 ### Screen status (keep current)
 

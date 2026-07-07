@@ -47,7 +47,7 @@ Pipeline: first working version. Interview-stage pursuits with notes and stage t
 
 <img width="1028" height="554" alt="image" src="https://github.com/user-attachments/assets/21e12e13-cf41-4d92-a44b-8ec391f46b99" />
 
-The full product rules and design system live in AGENTS.md.
+The full product rules and design system live in [AGENTS.md](AGENTS.md).
 
 ## How it's built
 

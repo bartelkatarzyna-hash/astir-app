@@ -9,7 +9,7 @@ Current implementation amendments:
 - Multi-location rows show a small inline `+N` marker with no location hover state.
 - Type follows AGENTS.md: three font sizes total, using color, weight, and spacing for hierarchy.
 - Icon-only controls use real SVG/icon components only. Do not use text glyphs for UI icons, including checks, chevrons, kebabs, plus signs, arrows, or calendar icons.
-- Icon-only controls sit in stable icon boxes so their visual size and alignment are consistent. Watchlist action icons default to muted gray. Bell is gold only when alerts are on. Flame is gold because it marks a new posting. Plus and kebab are gray by default and may turn gold only on hover or active states.
+- Icon-only controls sit in stable icon boxes so their visual size and alignment are consistent. Watchlist action icons default to muted gray. Bell is gold only when alerts are on. Fresh postings use a tokenized "New" chip instead of an icon. Plus and kebab are gray by default and may turn gold only on hover or active states.
 
 ---
 
@@ -38,11 +38,10 @@ Card recipe (card bg, line border, r-lg 14, card shadow), 8px vertical padding, 
 **Role rows** inside the card, separated by 1px line borders, equal top and bottom padding, top-aligned flex:
 
 Left to right:
-1. **Flame slot**, 22px fixed. Shows a fine outline flame icon when the posting is new, defined as `first_seen` within the last 48 hours. Use a real SVG, around 13px, gold-deep stroke around 1.55, with rounded caps and joins. It should read light and narrow, not chunky or filled. After 48 hours the flame disappears; no animation, the row simply renders without it. Rows without a flame keep the empty 22px slot so titles align. The flame is not interactive; it has a tooltip "New" but no hover background and default cursor.
-2. **Role block** (two lines):
-   - Title line: role title, 14px ink, single line. Truncates with ellipsis only when the container forces it; no fixed max width. Full title available on hover (title attribute or tooltip). Immediately after the title text: a 22px round icon button with a real up-right arrow SVG, tooltip "Open posting", which opens the posting URL in a new tab. Hover: gold-soft circle, gold-deep icon. Because the title truncates before the button, the button never overflows.
+1. **Role block** (two lines), left-aligned with the company name:
+   - Title line: role title, 14px ink, single line. Container is `display:flex`, `align-items:center`, `gap:8px`, and `min-width:0`. The title is the only shrinkable item but does not grow to fill spare space: `flex:0 1 auto`, `min-width:0`, `white-space:nowrap`, `overflow:hidden`, and `text-overflow:ellipsis`. Full title available on hover (title attribute or tooltip). Immediately after the visible title text: a 22px round icon button with `flex:0 0 auto` and a real open-posting SVG matching the square-corner up-right arrow at 14px with 1.4px stroke, tooltip "Open posting", which opens the posting URL in a new tab. Hover uses the same grey treatment as the kebab: hover-soft background and muted icon. Fresh postings then show a "New" chip with `flex:0 0 auto`, `white-space:nowrap`, gold-soft background, gold-text text, pill radius, `--type-chip` 12px type, `--weight-regular` 400 weight, and 4px 8px padding. Because the title truncates before the button and chip, these controls never overflow.
    - Location line: 12px muted. Format is always `City, Mode` with mode capitalized: "Berlin, Hybrid", "Berlin, On-site", "Stockholm, Remote". This capitalization is a deliberate exception to the sentence-case copy rule; location modes are treated as labels. Multi-location postings render as "Berlin +6, Remote". The `+6` inherits the exact location text style: same color, weight, and size. No underline and no hover state.
-3. **Log application button**, right-aligned: 30px round icon button with a real plus SVG, tooltip "Log application". Opens the log-application modal prefilled (section 4). The plus is muted gray by default, visually consistent with the kebab size/weight, and turns gold only on hover with a gold-soft circle.
+2. **Log application button**, right-aligned: 30px round icon button with a real plus SVG, tooltip "Log application". Opens the log-application modal prefilled (section 4). The plus is muted gray by default, visually consistent with the kebab size/weight, and turns gold only on hover with a gold-soft circle.
 
 Company cards never show counts of any kind.
 
@@ -114,18 +113,18 @@ Keywords are global (Settings), never per company. No keyword UI appears anywher
 
 ## 6. Tooltips
 
-Custom tooltip component on all icon controls (bell, kebab, open posting, log application) and on the flame: dark pill in snack tokens (snack-bg, snack-text), 12px, 8px padding, 8px radius, fade and 3px slide over .2s ease.
+Custom tooltip component on all icon controls (bell, kebab, open posting, log application): dark pill in snack tokens (snack-bg, snack-text), 12px, 8px padding, 8px radius, fade and 3px slide over .2s ease.
 
 Placement: below the control by default. Flip above only when there is not enough viewport room beneath. Use the shadcn Tooltip with bottom as the preferred side.
 
-Tooltip strings: bell "Alerts", kebab "More", title-line arrow "Open posting", plus "Log application", flame "New".
+Tooltip strings: bell "Alerts", kebab "More", title-line arrow "Open posting", plus "Log application".
 
 When a dropdown, modal, select, or date picker is open, tooltips are hidden and hover states below the open surface do not respond until it closes.
 
 ## 7. Data model notes
 
 1. Posting gains a `locations[]` array (or equivalent grouping) so identical titles across locations render as one row with "City +N". The poller is responsible for grouping.
-2. `first_seen` drives the flame: show while `now - first_seen < 48h`.
+2. `first_seen` drives the "New" chip: show while `now - first_seen < 48h`.
 3. Freshest-match ordering: sort companies by max(`first_seen`) of their open matching postings, descending.
 4. Applying creates an application record and does not delete the posting; the posting simply stops rendering on the Watchlist for this user (it is applied). If the posting later closes, `is_live` handles it as usual.
 5. The bell maps to `alerts_on` on the company. It has no effect on this screen's rendering.
@@ -151,8 +150,8 @@ All copy follows AGENTS.md section 6. One exception is codified here: location m
 
 ## 9. Build checklist
 
-1. Company card with head (name, bell, kebab) and role rows (flame slot, two-line role block, open-posting button, add-application plus).
-2. Flame rendering from `first_seen`, 48 hour window, tooltip, non-interactive.
+1. Company card with head (name, bell, kebab) and role rows (two-line role block, open-posting button, optional "New" chip, add-application plus).
+2. "New" chip rendering from `first_seen`, 48 hour window, non-interactive.
 3. Natural title truncation (flex min-width 0, ellipsis), full title on hover.
 4. Multi-location "City +N" with hover list.
 5. Quiet section disclosure with compact management rows.
@@ -162,4 +161,4 @@ All copy follows AGENTS.md section 6. One exception is codified here: location m
 9. Tooltips below-first on all icon controls.
 10. Snackbars per section 8.
 11. All popovers and modals close on Esc and outside click; focus is trapped in modals; every icon-only button has an aria-label matching its tooltip.
-12. Every icon is a real SVG/icon component, never a text glyph. This includes kebab, plus, chevrons, checks, arrows, calendar, bell, and flame.
+12. Every icon is a real SVG/icon component, never a text glyph. This includes kebab, plus, chevrons, checks, arrows, calendar, and bell.

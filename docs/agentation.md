@@ -1,6 +1,6 @@
 # Agentation for Astir
 
-Agentation is a development-only annotation tool for Kate. It is not part of the Astir customer experience.
+Agentation is a development-only annotation tool. It is not part of the Astir customer experience.
 
 ## Use it
 
@@ -26,7 +26,7 @@ Refresh `index.html` without the `agentation=1` query string.
 
 ## Preview-state links
 
-Always provide Kate with a build link that includes the preview-state toggle panel:
+Always provide a build link that includes the preview-state toggle panel:
 
 ```text
 http://localhost:5174/?demo=1

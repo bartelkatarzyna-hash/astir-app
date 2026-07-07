@@ -27,6 +27,7 @@ button {
 .app {
   display: flex;
   max-width: var(--page-max);
+  width: 100%;
   min-height: 100vh;
   margin: 0 auto;
 }
@@ -157,8 +158,13 @@ button {
 
 .main {
   flex: 1;
+  min-width: 0;
   max-width: var(--content-max);
   padding: var(--pad-main-top) var(--pad-main-x) var(--space-16);
+}
+
+.screen {
+  min-width: 0;
 }
 
 .screen[hidden] {
@@ -705,28 +711,9 @@ h1 {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
+  min-width: 0;
   padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
   border-top: var(--border-thin) solid var(--line);
-}
-
-.flame-slot {
-  display: grid;
-  flex: 0 0 var(--watch-flame-slot);
-  width: var(--watch-flame-slot);
-  min-height: var(--watch-title-action-size);
-  place-items: center;
-  color: var(--gold-deep);
-  cursor: default;
-}
-
-.flame-slot svg {
-  width: var(--watch-flame-size);
-  height: var(--watch-flame-size);
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.55;
 }
 
 .role-main {
@@ -738,10 +725,11 @@ h1 {
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .role-name {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--ink);
@@ -756,6 +744,18 @@ h1 {
   color: var(--muted);
   font-size: var(--type-meta);
   line-height: 1.35;
+}
+
+.role-new-chip {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--r-pill);
+  background: var(--gold-soft);
+  color: var(--gold-text);
+  font-size: var(--type-chip);
+  font-weight: var(--weight-regular);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .more-cities {
@@ -777,9 +777,15 @@ h1 {
 }
 
 .round-icon.small {
-  flex-basis: var(--watch-title-action-size);
+  flex: 0 0 var(--watch-title-action-size);
   width: var(--watch-title-action-size);
   height: var(--watch-title-action-size);
+}
+
+.role-title-line .round-icon.small svg {
+  width: var(--watch-open-icon-size);
+  height: var(--watch-open-icon-size);
+  stroke-width: 1.4;
 }
 
 .round-icon.bell {
@@ -849,6 +855,11 @@ h1 {
 
 .round-icon.add-application:hover {
   color: var(--gold-deep);
+}
+
+.role-title-line .round-icon.small:hover {
+  background: var(--hover-soft);
+  color: var(--muted);
 }
 
 .menu-wrap {

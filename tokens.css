@@ -81,6 +81,7 @@
   --dot-size: 30px;
   --icon-size: 13px;
   --watch-action-icon-size: 17px;
+  --watch-open-icon-size: 14px;
   --kebab-size: 17px;
   --goal-gauge-width: 96px;
   --goal-gauge-height: 56px;
@@ -89,8 +90,6 @@
   --setup-control-size: 22px;
   --watch-bell-size: 26px;
   --watch-title-action-size: 22px;
-  --watch-flame-slot: 22px;
-  --watch-flame-size: 13px;
   --menu-trigger: 30px;
   --week-max: 420px;
   --modal-max: 400px;
@@ -127,6 +126,8 @@
   --type-note: 14px;
   --type-demo-label: 14px;
   --type-tooltip: 12px;
+  --type-chip: 12px;
+  --weight-regular: 400;
   --weight-medium: 500;
   --weight-display: 600;
   --tracking-label: .05em;
