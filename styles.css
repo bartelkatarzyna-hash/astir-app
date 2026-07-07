@@ -315,11 +315,11 @@ h1 {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: calc(var(--space-16) + var(--space-12));
+  min-height: var(--goal-tile-height);
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-3);
+  justify-content: flex-start;
+  padding: var(--space-3) var(--space-3) var(--space-4);
   border: var(--border-thin) solid var(--line);
   border-radius: var(--r-md);
   background: transparent;
@@ -341,7 +341,7 @@ h1 {
   z-index: 2;
   width: var(--goal-gauge-width);
   height: var(--goal-gauge-height);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
   overflow: visible;
   pointer-events: none;
   transition: opacity .2s ease;

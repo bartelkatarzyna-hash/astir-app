@@ -84,6 +84,7 @@
   --kebab-size: 17px;
   --goal-gauge-width: 96px;
   --goal-gauge-height: 56px;
+  --goal-tile-height: calc(var(--space-16) + var(--space-12) + var(--space-1) + var(--space-hairline));
   --goal-control-size: 24px;
   --setup-control-size: 22px;
   --watch-bell-size: 26px;
