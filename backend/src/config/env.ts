@@ -1,0 +1,33 @@
+export type Env = {
+  NODE_ENV: string
+  PORT: string
+  DATABASE_URL: string
+  FRONTEND_ORIGIN: string
+  GOOGLE_CLIENT_ID: string
+  GOOGLE_CLIENT_SECRET: string
+  GOOGLE_CALLBACK_URL: string
+  JWT_SECRET: string
+  JOB_INGESTION_ENABLED: string
+  ADZUNA_APP_ID: string
+  ADZUNA_APP_KEY: string
+}
+
+export function validateEnv(config: Record<string, unknown>): Env {
+  return {
+    NODE_ENV: String(config.NODE_ENV ?? 'development'),
+    PORT: String(config.PORT ?? '3000'),
+    DATABASE_URL: String(
+      config.DATABASE_URL ?? 'postgresql://astir:astir@localhost:5432/astir?schema=public',
+    ),
+    FRONTEND_ORIGIN: String(config.FRONTEND_ORIGIN ?? 'http://localhost:5173'),
+    GOOGLE_CLIENT_ID: String(config.GOOGLE_CLIENT_ID ?? ''),
+    GOOGLE_CLIENT_SECRET: String(config.GOOGLE_CLIENT_SECRET ?? ''),
+    GOOGLE_CALLBACK_URL: String(
+      config.GOOGLE_CALLBACK_URL ?? 'http://localhost:5173/api/auth/google/callback',
+    ),
+    JWT_SECRET: String(config.JWT_SECRET ?? 'dev-only-jwt-secret'),
+    JOB_INGESTION_ENABLED: String(config.JOB_INGESTION_ENABLED ?? 'true'),
+    ADZUNA_APP_ID: String(config.ADZUNA_APP_ID ?? ''),
+    ADZUNA_APP_KEY: String(config.ADZUNA_APP_KEY ?? ''),
+  }
+}

@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  googleId  String   @unique @map("google_id")
+  email     String   @unique
+  name      String
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  watchlistPreferences WatchlistPreferences?
+  watchlistCompanies   WatchlistCompany[]
+  jobListings          UserJobListing[]
+  applications         Application[]
+
+  @@map("users")
+}
+
+model WatchlistPreferences {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  keywords      String[] @default([])
+  workModes     String[] @default([]) @map("work_modes")
+  contractTypes String[] @default([]) @map("contract_types")
+  terms         String[] @default([])
+  languages     String[] @default([])
+  industryNoGos String[] @default([]) @map("industry_no_gos")
+  hiringRegions String[] @default([]) @map("hiring_regions")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("watchlist_preferences")
+}
+
+// A board we poll for openings. There are two kinds (see JobBoardProvider):
+//   kind "ats"        — one company per board; externalId is the provider
+//                       handle (Greenhouse board token, Ashby job-board name,
+//                       Workable subdomain). These rows are created on demand
+//                       when a watchlist company resolves to a handle, and are
+//                       shared across every user watching that company.
+//   kind "aggregator" — a multi-company job board queried without a handle;
+//                       externalId is a fixed feed key. (Future; see docs.)
+// companyKey is the normalized company name used to dedupe ATS resolution so
+// two users watching the same company share one source.
+model JobSource {
+  id            String    @id @default(cuid())
+  provider      String
+  kind          String    @default("ats")
+  externalId    String    @map("external_id")
+  companyName   String    @map("company_name")
+  companyKey    String?   @map("company_key")
+  enabled       Boolean   @default(true)
+  lastSyncedAt  DateTime? @map("last_synced_at")
+  lastSyncError String?   @map("last_sync_error")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  listingSources     JobListingSource[]
+  watchlistCompanies WatchlistCompany[]
+
+  @@unique([provider, externalId])
+  @@index([companyKey])
+  @@map("job_sources")
+}
+
+// A company a user is watching. The union of all users' rows is the superset
+// we resolve to ATS boards and poll. resolutionStatus tracks whether the
+// company was found on an ATS ("resolved"), is still being looked up
+// ("pending"), or was not found anywhere ("unresolved" — a scraping
+// candidate; see docs/job-boards.md).
+model WatchlistCompany {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  name             String
+  nameKey          String   @map("name_key")
+  careersUrl       String?  @map("careers_url")
+  alertsOn         Boolean  @default(true) @map("alerts_on")
+  jobSourceId      String?  @map("job_source_id")
+  resolutionStatus String   @default("pending") @map("resolution_status")
+  // Where the user is in building referral contacts at this company, so a
+  // posting can land on someone they already know. none: no outreach yet;
+  // active: reaching out / conversations underway; warm: has a solid contact.
+  networkingStage  String   @default("none") @map("networking_stage")
+  networkingNotes  String?  @map("networking_notes")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobSource JobSource? @relation(fields: [jobSourceId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, nameKey])
+  @@map("watchlist_companies")
+}
+
+// One canonical opening. The same job posted through several providers is
+// consolidated here via the fingerprint; the per-provider records live in
+// JobListingSource.
+model JobListing {
+  id          String    @id @default(cuid())
+  fingerprint String    @unique
+  title       String
+  companyName String    @map("company_name")
+  location    String?
+  locations   String[]  @default([])
+  workMode    String?   @map("work_mode")
+  url         String
+  postedAt    DateTime? @map("posted_at")
+  firstSeenAt DateTime  @default(now()) @map("first_seen_at")
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sources      JobListingSource[]
+  users        UserJobListing[]
+  applications Application[]
+
+  @@map("job_listings")
+}
+
+// Where a canonical listing was seen: one row per provider posting.
+model JobListingSource {
+  id          String   @id @default(cuid())
+  listingId   String   @map("listing_id")
+  jobSourceId String?  @map("job_source_id")
+  provider    String
+  externalId  String   @map("external_id")
+  url         String
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  listing   JobListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  jobSource JobSource? @relation(fields: [jobSourceId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalId])
+  @@map("job_listing_sources")
+}
+
+// m:n between users and listings; a row means the listing matched the
+// user's watchlist preferences and appears on their Job Boards screen.
+model UserJobListing {
+  userId          String   @map("user_id")
+  listingId       String   @map("listing_id")
+  status          String   @default("new")
+  matchedKeywords String[] @default([]) @map("matched_keywords")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing JobListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([userId, listingId])
+  @@map("user_job_listings")
+}
+
+// A job the user has applied to. Logged from the watchlist (or Job Boards),
+// in which case listingId points at the canonical posting so we can show its
+// location, work mode, and posted date; or entered by hand, in which case
+// company/role/link stand alone. status is the pipeline stage (see
+// statusOptions in the client): "Applied" and "Closed" sit outside the active
+// pipeline; the stages in between ("1st stage".."Hired") show on the Pipeline
+// screen. note holds the client's rich-text block structure.
+model Application {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  listingId      String?  @map("listing_id")
+  company        String
+  role           String
+  link           String?
+  status         String   @default("Applied")
+  appliedDate    String   @map("applied_date")
+  stageChangedAt DateTime @default(now()) @map("stage_changed_at")
+  note           Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing JobListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("applications")
+}

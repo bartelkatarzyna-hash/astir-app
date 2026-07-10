@@ -1,0 +1,16 @@
+@import "../styles/tokens.css";
+@import "../styles/app.css";
+
+/* The fonts come from next/font (see layout.tsx) instead of the prototype's
+   Google Fonts <link>; point the prototype's token variables at them. */
+:root {
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", sans-serif;
+  --font-body: var(--font-instrument), "Instrument Sans", system-ui, sans-serif;
+}
+
+/* The Next.js dev-tools button owns the bottom-right corner; shift the
+   Agentation toolbar left so both stay visible. Doubled class outweighs
+   the package's own right: 20px rule. */
+.astir-agentation.astir-agentation {
+  right: 76px;
+}

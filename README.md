@@ -37,7 +37,7 @@ Then, when change comes, wanted or not, everything is already prepped: your reco
 
 ## What exists today
 
-Early stage, front-end only, no backend yet. Data lives in localStorage. Currently working:
+Early stage. Data still lives in localStorage while the new backend foundation is being added. Currently working:
 
 - Home: the weekly view, with application logging, a conditional Screenings card, and weekly goals you set yourself, soft targets with quiet progress, never streaks or totals
 - Watchlist: the curated list of companies and roles that matter, with alerts, role matching, and one-tap application logging from a role
@@ -53,4 +53,48 @@ The full product rules and design system live in [AGENTS.md](AGENTS.md).
 
 Solo, end to end: product, design, code. Designed conversationally with Claude, built in VS Code with Codex as the pair, and used daily on my own live job search, so every rough edge gets felt by the one person who can fix it the same day.
 
-Plain HTML, CSS, and JavaScript. No framework, no build step: open index.html and it runs. The whole look is driven by a single token file (tokens.css), and state persists in localStorage. Bricolage Grotesque and Instrument Sans. Light mode first; a warm dark mode is planned.
+The current plain HTML, CSS, and JavaScript app is preserved under `prototype/` as the reference implementation. The new app foundation is a workspace with a Next.js frontend in `frontend/`, a NestJS backend in `backend/`, and Postgres through Docker Compose. The whole look is still driven by Astir tokens. State remains in localStorage until the backend data model and API contracts are specified.
+
+## Local development
+
+Requirements:
+
+- Node.js 22 or newer
+- npm 10 or newer
+- Docker with OrbStack or Docker Desktop
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the full stack:
+
+```bash
+npm run dev
+```
+
+Run apps separately:
+
+```bash
+npm run dev:frontend
+npm run dev:backend
+```
+
+Local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:3000/api/health`
+- Same-origin API proxy: `http://localhost:5173/api/health`
+- Database: `localhost:5432`
+
+Frontend code should call `/api/*`. Next.js forwards that to the backend, so browser API calls stay on `localhost:5173`.
+
+Checks:
+
+```bash
+npm run lint
+npm run test
+npm run build
+```

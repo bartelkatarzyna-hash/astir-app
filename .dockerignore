@@ -1,0 +1,7 @@
+.git
+node_modules
+frontend/.next
+backend/dist
+coverage
+.DS_Store
+.env

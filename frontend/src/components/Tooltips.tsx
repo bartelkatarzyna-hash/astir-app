@@ -1,0 +1,128 @@
+'use client'
+
+import { useEffect } from 'react'
+
+// Global tooltip layer, ported 1:1 from the prototype (setupTooltips and
+// friends in prototype/app.js). Elements opt in with data-tooltip (labels,
+// no arrow) or data-info-tooltip (longer copy, with arrow); the bubble is
+// positioned below the anchor, flipping above when it would overflow.
+export function Tooltips() {
+  useEffect(() => {
+    let activeTooltipTarget: HTMLElement | null = null
+
+    const tooltipLayer = document.createElement('div')
+    tooltipLayer.className = 'tooltip-layer'
+    tooltipLayer.hidden = true
+    tooltipLayer.innerHTML =
+      '<span class="tooltip-arrow" aria-hidden="true"></span><span class="tooltip-bubble"></span>'
+    document.body.appendChild(tooltipLayer)
+    const tooltipArrow = tooltipLayer.querySelector('.tooltip-arrow') as HTMLElement
+    const tooltipBubble = tooltipLayer.querySelector('.tooltip-bubble') as HTMLElement
+
+    function tooltipCopy(target: HTMLElement | null) {
+      return target ? target.dataset.infoTooltip || target.dataset.tooltip || '' : ''
+    }
+
+    function tooltipCandidate(target: EventTarget | null) {
+      return target instanceof Element
+        ? (target.closest('[data-info-tooltip], [data-tooltip]') as HTMLElement | null)
+        : null
+    }
+
+    function tooltipNumber(token: string, fallback: number) {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(token)
+      const parsed = Number.parseFloat(value)
+      return Number.isFinite(parsed) ? parsed : fallback
+    }
+
+    function tooltipMinLeft() {
+      const rail = document.querySelector('.rail')
+      const narrow = window.matchMedia('(max-width: 760px)').matches
+      const inset = tooltipNumber('--space-2', 8)
+      if (!rail || narrow) return inset
+      return rail.getBoundingClientRect().right + inset
+    }
+
+    function positionTooltip() {
+      if (!activeTooltipTarget || tooltipLayer.hidden) return
+      const targetRect = activeTooltipTarget.getBoundingClientRect()
+      const inset = tooltipNumber('--space-2', 8)
+      const shift = tooltipNumber('--tooltip-shift', 3)
+      const minLeft = tooltipMinLeft()
+      const maxAvailableWidth = Math.max(160, window.innerWidth - minLeft - inset)
+      const maxLineWidth = tooltipNumber('--type-tooltip', 12) * 40
+      const noArrowInset = tooltipLayer.classList.contains('no-arrow')
+        ? tooltipNumber('--space-1', 4)
+        : 0
+      tooltipBubble.style.maxWidth = `${Math.min(maxLineWidth, maxAvailableWidth)}px`
+
+      const bubbleRect = tooltipBubble.getBoundingClientRect()
+      const anchorCenter = targetRect.left + targetRect.width / 2
+      const maxLeft = Math.max(minLeft, window.innerWidth - bubbleRect.width - inset)
+      const left = Math.min(Math.max(anchorCenter - bubbleRect.width / 2, minLeft), maxLeft)
+      const belowTop = targetRect.bottom + shift + inset - noArrowInset
+      const aboveTop = targetRect.top - bubbleRect.height - shift - inset + noArrowInset
+      const useAbove = belowTop + bubbleRect.height > window.innerHeight - inset && aboveTop >= inset
+
+      tooltipLayer.style.left = `${left}px`
+      tooltipLayer.style.top = `${useAbove ? aboveTop : belowTop}px`
+      tooltipLayer.classList.toggle('above', useAbove)
+      tooltipArrow.style.left = `${anchorCenter - left}px`
+    }
+
+    function showTooltip(target: HTMLElement) {
+      if (document.body.classList.contains('surface-open')) return
+      const copy = tooltipCopy(target)
+      if (!copy) return
+      activeTooltipTarget = target
+      tooltipBubble.textContent = copy
+      tooltipLayer.classList.toggle('no-arrow', !target.dataset.infoTooltip)
+      tooltipLayer.hidden = false
+      positionTooltip()
+    }
+
+    function hideTooltip() {
+      activeTooltipTarget = null
+      tooltipLayer.hidden = true
+    }
+
+    function onPointerOver(event: PointerEvent) {
+      const target = tooltipCandidate(event.target)
+      if (target) showTooltip(target)
+    }
+
+    function onPointerOut(event: PointerEvent) {
+      if (!activeTooltipTarget || activeTooltipTarget.contains(event.relatedTarget as Node)) return
+      hideTooltip()
+    }
+
+    function onFocusIn(event: FocusEvent) {
+      const target = tooltipCandidate(event.target)
+      if (target) showTooltip(target)
+    }
+
+    function onFocusOut(event: FocusEvent) {
+      if (!activeTooltipTarget || activeTooltipTarget.contains(event.relatedTarget as Node)) return
+      hideTooltip()
+    }
+
+    document.addEventListener('pointerover', onPointerOver)
+    document.addEventListener('pointerout', onPointerOut)
+    document.addEventListener('focusin', onFocusIn)
+    document.addEventListener('focusout', onFocusOut)
+    window.addEventListener('resize', positionTooltip)
+    window.addEventListener('scroll', positionTooltip, true)
+
+    return () => {
+      document.removeEventListener('pointerover', onPointerOver)
+      document.removeEventListener('pointerout', onPointerOut)
+      document.removeEventListener('focusin', onFocusIn)
+      document.removeEventListener('focusout', onFocusOut)
+      window.removeEventListener('resize', positionTooltip)
+      window.removeEventListener('scroll', positionTooltip, true)
+      tooltipLayer.remove()
+    }
+  }, [])
+
+  return null
+}

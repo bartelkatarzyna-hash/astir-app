@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: astir
+      POSTGRES_USER: astir
+      POSTGRES_PASSWORD: astir
+    ports:
+      - "5432:5432"
+    volumes:
+      - astir_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astir -d astir"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://astir:astir@db:5432/astir?schema=public
+      FRONTEND_ORIGIN: http://localhost:5173
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5173/api/auth/google/callback}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app/backend
+      - backend_node_modules:/app/backend/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npm run prisma:deploy --workspace backend && npm run start:dev --workspace backend"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    working_dir: /app
+    environment:
+      API_TARGET: http://backend:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - frontend_node_modules:/app/frontend/node_modules
+    command: npm run dev:frontend
+    depends_on:
+      - backend
+
+volumes:
+  astir_db:
+  root_node_modules:
+  frontend_node_modules:
+  backend_node_modules:
