@@ -115,3 +115,73 @@ export function SearchIcon() {
     </svg>
   )
 }
+
+export function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
+    </svg>
+  )
+}
+
+// Primary-rail navigation glyphs. Kept minimal and thin-stroked; sizing and
+// stroke width come from `.nav a svg` in the global stylesheet.
+
+export function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 10.5l8-6 8 6" />
+      <path d="M6 9.5V19h12V9.5" />
+    </svg>
+  )
+}
+
+export function PipelineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 6h9" />
+      <path d="M5 12h14" />
+      <path d="M5 18h6" />
+      <circle cx="17.5" cy="6" r="1.6" />
+      <circle cx="8.5" cy="18" r="1.6" />
+    </svg>
+  )
+}
+
+export function BookmarkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 4.5h12v15l-6-4-6 4z" />
+    </svg>
+  )
+}
+
+export function BriefcaseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 8.5h16v10H4z" />
+      <path d="M9 8.5V6.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M4 12.5h16" />
+    </svg>
+  )
+}
+
+export function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" />
+      <path d="M4 12h16" />
+      <path d="M12 4c2.5 2.2 3.8 5 3.8 8s-1.3 5.8-3.8 8c-2.5-2.2-3.8-5-3.8-8s1.3-5.8 3.8-8z" />
+    </svg>
+  )
+}
+
+export function LayersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 4l8 4-8 4-8-4 8-4z" />
+      <path d="M4 12l8 4 8-4" />
+      <path d="M4 16l8 4 8-4" />
+    </svg>
+  )
+}

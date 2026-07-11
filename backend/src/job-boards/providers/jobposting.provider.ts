@@ -35,6 +35,8 @@ type SchemaOrgJobPosting = {
   jobLocationType?: string
   hiringOrganization?: { name?: string } | string
   identifier?: { value?: string | number } | string | number
+  // schema.org allows a BCP-47 string ('en', 'en-US') or a Language object.
+  inLanguage?: string | { name?: string; alternateName?: string }
 }
 
 function hasType(node: { '@type'?: string | string[] }, type: string): boolean {
@@ -114,6 +116,16 @@ function locationsFromJobPosting(posting: SchemaOrgJobPosting): string[] {
   ]
 }
 
+// Reduce schema.org inLanguage to an ISO 639-1 primary subtag ('en-US' ->
+// 'en'). Only accepts BCP-47-style codes; a full language name ("German")
+// yields null rather than guessing a code.
+function languageFrom(posting: SchemaOrgJobPosting): string | null {
+  const raw = posting.inLanguage
+  const value = typeof raw === 'string' ? raw : raw?.alternateName || raw?.name
+  const subtag = value?.trim().split(/[-_]/)[0].toLowerCase()
+  return subtag && /^[a-z]{2,3}$/.test(subtag) ? subtag : null
+}
+
 function identifierFrom(posting: SchemaOrgJobPosting): string | null {
   const id = posting.identifier
   if (id === undefined || id === null) {
@@ -190,6 +202,7 @@ export class JobPostingProvider implements AtsProvider {
       workMode: this.workMode(posting),
       url,
       postedAt: parseDate(posting.datePosted),
+      contentLanguage: languageFrom(posting),
     }
   }
 

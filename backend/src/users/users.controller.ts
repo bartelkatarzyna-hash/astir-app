@@ -1,5 +1,6 @@
 import { Body, Controller, Get, NotFoundException, Patch, Put, UseGuards } from '@nestjs/common'
 import { User } from '@prisma/client'
+import { isAdminEmail } from '../auth/admin'
 import { AuthenticatedUser, CurrentUser } from '../auth/current-user.decorator'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { UpdateProfileDto } from './dto/update-profile.dto'
@@ -12,6 +13,8 @@ type UserResponse = {
   name: string
   avatarUrl: string | null
   createdAt: Date
+  // Whether this user may see the Admin Panel / curate the Remote Job Board.
+  isAdmin: boolean
 }
 
 function toUserResponse(user: User): UserResponse {
@@ -21,6 +24,7 @@ function toUserResponse(user: User): UserResponse {
     name: user.name,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
+    isAdmin: isAdminEmail(user.email),
   }
 }
 

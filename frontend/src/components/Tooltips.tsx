@@ -106,6 +106,17 @@ export function Tooltips() {
       hideTooltip()
     }
 
+    // When a surface (menu/modal) opens, showTooltip already refuses to open
+    // new tooltips — but one may already be visible from hovering the trigger.
+    // Dismiss it as soon as body gains the surface-open class.
+    const surfaceObserver = new MutationObserver(() => {
+      if (document.body.classList.contains('surface-open')) hideTooltip()
+    })
+    surfaceObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+
     document.addEventListener('pointerover', onPointerOver)
     document.addEventListener('pointerout', onPointerOut)
     document.addEventListener('focusin', onFocusIn)
@@ -114,6 +125,7 @@ export function Tooltips() {
     window.addEventListener('scroll', positionTooltip, true)
 
     return () => {
+      surfaceObserver.disconnect()
       document.removeEventListener('pointerover', onPointerOver)
       document.removeEventListener('pointerout', onPointerOut)
       document.removeEventListener('focusin', onFocusIn)

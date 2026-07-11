@@ -12,11 +12,16 @@ import {
 } from './providers/job-board-provider'
 
 // Which sources are worth polling. ATS boards are company-scoped, so we only
-// poll ones a user actually watches; aggregator feeds span many companies and
-// are always polled. Both must be enabled.
+// poll ones referenced by a watchlist or the global remote-company list;
+// aggregator feeds span many companies and are always polled. Both must be
+// enabled.
 const POLLABLE_SOURCES: Prisma.JobSourceWhereInput = {
   enabled: true,
-  OR: [{ kind: 'aggregator' }, { watchlistCompanies: { some: {} } }],
+  OR: [
+    { kind: 'aggregator' },
+    { watchlistCompanies: { some: {} } },
+    { remoteCompanies: { some: {} } },
+  ],
 }
 
 export type SyncSummary = {
@@ -177,6 +182,7 @@ export class JobIngestionService implements OnApplicationBootstrap {
             locations: [...new Set([...existing.locations, ...job.locations])],
             workMode: existing.workMode ?? job.workMode,
             postedAt: existing.postedAt ?? job.postedAt,
+            contentLanguage: existing.contentLanguage ?? job.contentLanguage ?? null,
           },
         })
       : await this.prisma.jobListing.create({
@@ -187,6 +193,7 @@ export class JobIngestionService implements OnApplicationBootstrap {
             location: job.location,
             locations: job.locations,
             workMode: job.workMode,
+            contentLanguage: job.contentLanguage ?? null,
             url: job.url,
             postedAt: job.postedAt,
             firstSeenAt: now,

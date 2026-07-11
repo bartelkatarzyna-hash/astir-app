@@ -10,6 +10,9 @@ export type Env = {
   JOB_INGESTION_ENABLED: string
   ADZUNA_APP_ID: string
   ADZUNA_APP_KEY: string
+  // Comma-separated allow-list of admin emails. Admins see the Preferences →
+  // Admin Panel and can curate the global Remote Job Board company list.
+  ADMIN_EMAILS: string
 }
 
 export function validateEnv(config: Record<string, unknown>): Env {
@@ -29,5 +32,6 @@ export function validateEnv(config: Record<string, unknown>): Env {
     JOB_INGESTION_ENABLED: String(config.JOB_INGESTION_ENABLED ?? 'true'),
     ADZUNA_APP_ID: String(config.ADZUNA_APP_ID ?? ''),
     ADZUNA_APP_KEY: String(config.ADZUNA_APP_KEY ?? ''),
+    ADMIN_EMAILS: String(config.ADMIN_EMAILS ?? 'bartel.katarzyna@gmail.com'),
   }
 }

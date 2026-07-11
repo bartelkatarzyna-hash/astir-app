@@ -17,6 +17,7 @@ import { LogApplicationModal } from './applications/LogApplicationModal'
 import { NoteField } from './applications/NoteField'
 import { StageSelect } from './applications/StageSelect'
 import { useApplications } from './applications/useApplications'
+import { useStageConfig } from '@/lib/stages'
 import { OpenIcon } from './icons'
 
 // "Posted · Applied · Location · Type" for the expanded card, from the linked
@@ -108,19 +109,23 @@ function PipelineCard({
 
 export function PipelineView() {
   const { applications, changeStage, reload, showSnack, overlay } = useApplications()
+  const { isEnabled } = useStageConfig()
   const [expandedId, setExpandedId] = useState('')
   const [logging, setLogging] = useState(false)
   const [heardOpen, setHeardOpen] = useState(false)
 
   const pipeline = useMemo(() => {
     return (applications ?? [])
-      .filter((application) => isPipelineStatus(application.status))
+      .filter(
+        (application) =>
+          isPipelineStatus(application.status) && isEnabled(application.status),
+      )
       .sort((a, b) => {
         const byTime =
           new Date(b.stageChangedAt).getTime() - new Date(a.stageChangedAt).getTime()
         return byTime !== 0 ? byTime : stageRank(b.status) - stageRank(a.status)
       })
-  }, [applications])
+  }, [applications, isEnabled])
 
   const empty = pipeline.length === 0
 
@@ -130,10 +135,16 @@ export function PipelineView() {
         <div className="pipeline-title-wrap">
           <h1>Pipeline</h1>
           <KebabMenu menuClassName="pipeline-menu">
-            <span className="menu-hint">
-              {empty ? 'This is where your applications will live' : 'View everything you have applied to.'}
-            </span>
-            <Link href="/applications">All applications</Link>
+            <Link
+              href="/applications"
+              data-tooltip={
+                empty
+                  ? 'This is where your applications will live'
+                  : 'View everything you have applied to.'
+              }
+            >
+              All applications
+            </Link>
           </KebabMenu>
         </div>
         {!empty ? (

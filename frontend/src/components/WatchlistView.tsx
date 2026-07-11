@@ -18,6 +18,9 @@ type Role = {
   location: string | null
   locations: string[]
   workMode: string | null
+  // ISO 639-1 code of the language the ad is written in (e.g. 'en', 'de'), when
+  // the provider exposes it; null otherwise.
+  contentLanguage: string | null
   postedAt: string | null
   firstSeenAt: string
   matchedKeywords: string[]
@@ -85,6 +88,7 @@ function LocationLine({ role }: { role: Role }) {
           modes vary, so we drop it. */}
       {primary && extra === 0 && mode ? `, ${mode}` : null}
       {!primary && mode ? mode : null}
+      {role.contentLanguage ? <span className="role-lang">{role.contentLanguage.toUpperCase()}</span> : null}
     </div>
   )
 }
@@ -99,11 +103,17 @@ function deriveNameFromUrl(url: string): string {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   const atsMatch = url.match(
-    /(?:boards|job-boards)\.greenhouse\.io\/([a-z0-9-]+)|jobs\.ashbyhq\.com\/([a-z0-9-]+)|apply\.workable\.com\/([a-z0-9-]+)|jobs\.lever\.co\/([a-z0-9-]+)|(?:jobs|careers)\.smartrecruiters\.com\/([a-z0-9-]+)|([a-z0-9-]+)\.recruitee\.com/i,
+    /(?:boards|job-boards)\.greenhouse\.io\/([a-z0-9-]+)|jobs\.ashbyhq\.com\/([a-z0-9-]+)|apply\.workable\.com\/([a-z0-9-]+)|jobs\.lever\.co\/([a-z0-9-]+)|(?:jobs|careers)\.smartrecruiters\.com\/([a-z0-9-]+)|([a-z0-9-]+)\.recruitee\.com|join\.com\/companies\/([a-z0-9-]+)/i,
   )
   if (atsMatch) {
     return titleCase(
-      atsMatch[1] || atsMatch[2] || atsMatch[3] || atsMatch[4] || atsMatch[5] || atsMatch[6],
+      atsMatch[1] ||
+        atsMatch[2] ||
+        atsMatch[3] ||
+        atsMatch[4] ||
+        atsMatch[5] ||
+        atsMatch[6] ||
+        atsMatch[7],
     )
   }
   try {
@@ -468,6 +478,8 @@ function QuietRow({
   onEdit,
   onRemove,
   onNetworking,
+  onRetry,
+  retrying,
 }: {
   company: Company
   onToggleAlerts: (company: Company) => void
@@ -477,6 +489,8 @@ function QuietRow({
     company: Company,
     patch: { networkingStage?: NetworkingStage; networkingNotes?: string },
   ) => void
+  onRetry: (company: Company) => void
+  retrying: boolean
 }) {
   const [netOpen, setNetOpen] = useState(false)
   return (
@@ -508,6 +522,22 @@ function QuietRow({
           </button>
         </KebabMenu>
       </div>
+      {company.resolutionStatus === 'unresolved' ? (
+        <div className="watch-role">
+          <div className="role-loc">
+            We couldn&apos;t find this company&apos;s job board yet. Add its careers link to help us
+            watch it, or re-check.
+          </div>
+          <button
+            className="text-button"
+            type="button"
+            disabled={retrying}
+            onClick={() => onRetry(company)}
+          >
+            {retrying ? 'Re-checking…' : 'Re-check'}
+          </button>
+        </div>
+      ) : null}
     </article>
   )
 }
@@ -517,6 +547,7 @@ export function WatchlistView() {
   const [failed, setFailed] = useState(false)
   const [editor, setEditor] = useState<Editor>(null)
   const [quietOpen, setQuietOpen] = useState(false)
+  const [retryingId, setRetryingId] = useState<string | null>(null)
   const [logging, setLogging] = useState<LogApplicationInitial | null>(null)
   const { message: snack, showSnack } = useSnackbar()
 
@@ -573,6 +604,31 @@ export function WatchlistView() {
     await fetch(`/api/watchlist/companies/${company.id}`, { method: 'DELETE' })
     await reload()
     showSnack({ text: `${company.name} removed from your watchlist.` })
+  }
+
+  // Re-attempt resolution for a company we couldn't place on an ATS — useful
+  // after a new integration ships (its board may now be found).
+  async function retryCompany(company: Company) {
+    if (retryingId) return
+    setRetryingId(company.id)
+    try {
+      const response = await fetch(`/api/watchlist/companies/${company.id}/resolve`, {
+        method: 'POST',
+      })
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+      await reload()
+      const updated = ((await response.json()) as Company | undefined) ?? company
+      showSnack({
+        text:
+          updated.resolutionStatus === 'resolved'
+            ? `Found ${company.name}'s job board.`
+            : `Still couldn't find ${company.name}'s job board.`,
+      })
+    } catch {
+      showSnack({ text: `Couldn't re-check ${company.name}. Try again.` })
+    } finally {
+      setRetryingId(null)
+    }
   }
 
   function openLog(company: Company, role: Role) {
@@ -707,6 +763,8 @@ export function WatchlistView() {
                         onEdit={(c) => setEditor({ mode: 'edit', company: c })}
                         onRemove={(c) => setEditor({ mode: 'remove', company: c })}
                         onNetworking={updateNetworking}
+                        onRetry={retryCompany}
+                        retrying={retryingId === company.id}
                       />
                     ))}
                   </div>

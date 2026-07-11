@@ -40,6 +40,11 @@ button {
   padding: var(--pad-card) var(--r-xl);
   background: var(--rail);
   border-right: var(--border-thin) solid var(--line);
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .brand {
@@ -128,11 +133,32 @@ button {
   text-decoration: none;
 }
 
+.nav .nav-icon {
+  display: inline-flex;
+  flex: none;
+  color: currentColor;
+}
+
+.nav .nav-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
 .nav a.active {
   background: var(--card);
   color: var(--ink);
   box-shadow: var(--shadow-active);
   font-weight: var(--weight-medium);
+}
+
+.nav a.active .nav-icon svg {
+  opacity: 1;
 }
 
 .nav a:hover:not(.active) {
@@ -302,6 +328,13 @@ h1 {
   color: var(--muted);
   font-size: var(--type-control);
   line-height: 1.5;
+}
+
+/* Match the goals subtext to the Applications/Screenings card copy (--ink2),
+   which reads a touch darker than the default --muted hint grey. */
+.unwritten-line,
+.goals-support {
+  color: var(--ink2);
 }
 
 .unwritten-line {
@@ -785,6 +818,20 @@ h1 {
   font-weight: inherit;
 }
 
+/* Content-language tag (e.g. "DE") on a role row: the language the ad is
+   written in, a light hint about what a role expects. */
+.role-lang {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--border, #d0d0d0);
+  border-radius: 4px;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  vertical-align: middle;
+}
+
 /* Networking control — a stage chip in the company header that opens a popover
    with the stage selector and notes, for warming up referral contacts before a
    role opens. */
@@ -1089,7 +1136,14 @@ h1 {
   display: block;
 }
 
-.watch-menu button {
+/* The Pipeline menu sits next to the title on the left, so it opens rightward. */
+.watch-menu.pipeline-menu {
+  right: auto;
+  left: 0;
+}
+
+.watch-menu button,
+.watch-menu a {
   display: block;
   width: 100%;
   padding: var(--space-2) var(--space-4);
@@ -1099,9 +1153,11 @@ h1 {
   color: var(--ink2);
   font-size: var(--type-control);
   text-align: left;
+  text-decoration: none;
 }
 
-.watch-menu button:hover {
+.watch-menu button:hover,
+.watch-menu a:hover {
   background: var(--hover-soft);
   color: var(--ink);
 }
@@ -1326,7 +1382,8 @@ h1 {
   margin-top: var(--space-12);
 }
 
-.quiet-section .watch-card-list {
+.quiet-section .watch-card-list,
+.quiet-section .board-feed {
   margin-top: var(--space-3);
 }
 
@@ -1379,13 +1436,38 @@ h1 {
   background: var(--card);
 }
 
-.pipeline-head,
-.applications-head {
+.pipeline-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-6);
   margin-bottom: var(--space-6);
+}
+
+.applications-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.applications-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.applications-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.applications-count-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .pipeline-title-wrap {
@@ -1666,14 +1748,6 @@ h1 {
   }
 }
 
-.menu-hint {
-  display: block;
-  padding: 0 var(--space-4) var(--space-2);
-  color: var(--muted);
-  font-size: var(--type-control);
-  line-height: 1.35;
-}
-
 .watch-menu button:disabled {
   cursor: default;
   color: var(--muted);
@@ -1696,7 +1770,6 @@ h1 {
 }
 
 .applications-count {
-  margin-top: var(--space-2);
   color: var(--muted);
   font-size: var(--type-body);
 }
@@ -1704,32 +1777,52 @@ h1 {
 .applications-search {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+}
+
+/* Collapsed it is just the round magnifier button. Open, the icon folds into a
+   single search field and sits inside it as a leading icon. */
+.applications-search.open {
+  height: var(--input-height);
+  padding-right: var(--space-3);
+  border: var(--border-thin) solid var(--line2);
+  border-radius: var(--input-radius);
+  background: var(--paper);
+  transition: border-color .25s ease;
+}
+
+.applications-search.open:focus-within {
+  border-color: var(--gold);
+}
+
+.applications-search.open .round-icon,
+.applications-search.open .round-icon:hover {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  padding: 0 var(--space-1) 0 var(--space-2);
+  background: transparent;
 }
 
 .applications-search input {
   width: 0;
   height: var(--input-height);
   padding: 0;
-  border: var(--border-thin) solid var(--line2);
-  border-radius: var(--input-radius);
-  background: var(--paper);
+  border: 0;
+  background: transparent;
   color: var(--ink);
   font-size: var(--type-body);
   opacity: 0;
   pointer-events: none;
-  transition: width .25s ease, opacity .25s ease, padding .25s ease, border-color .25s ease;
+  transition: width .25s ease, opacity .25s ease;
 }
 
 .applications-search.open input {
   width: var(--rail-width);
-  padding: 0 var(--space-3);
   opacity: 1;
   pointer-events: auto;
 }
 
 .applications-search input:focus {
-  border-color: var(--gold);
   outline: none;
 }
 
@@ -1851,6 +1944,107 @@ h1 {
 .table-empty {
   color: var(--muted);
   text-align: center;
+}
+
+/* Truncate long cell content to a single line; the full value is revealed on
+   hover via the global data-tooltip layer. */
+.cell-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-role .cell-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.applications-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.round-icon.on {
+  color: var(--gold-deep);
+}
+
+.round-icon-dot {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: var(--space-1-5, 6px);
+  height: var(--space-1-5, 6px);
+  border-radius: var(--r-pill);
+  background: var(--gold-deep);
+}
+
+.stage-filter-menu {
+  padding: var(--space-2);
+}
+
+.stage-filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--muted);
+  font-size: var(--type-control);
+}
+
+.stage-filter-clear {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold-deep);
+  font-size: var(--type-control);
+  cursor: pointer;
+}
+
+.stage-filter-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink2);
+  font-size: var(--type-control);
+  text-align: left;
+  cursor: pointer;
+}
+
+.stage-filter-option:hover {
+  background: var(--hover-soft);
+  color: var(--ink);
+}
+
+.stage-filter-option.checked {
+  color: var(--ink);
+}
+
+.stage-filter-check {
+  display: grid;
+  flex: 0 0 var(--icon-size);
+  width: var(--icon-size);
+  height: var(--icon-size);
+  place-items: center;
+  color: var(--gold-deep);
+}
+
+.stage-filter-check svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2126,6 +2320,17 @@ textarea {
   margin-top: calc(var(--space-2) * -1);
 }
 
+.confirm-modal {
+  width: min(100%, 26rem);
+}
+
+.confirm-copy {
+  margin-top: var(--space-2);
+  color: var(--ink2);
+  font-size: var(--type-secondary);
+  line-height: 1.5;
+}
+
 .modal-note {
   font-size: var(--type-meta);
 }
@@ -2369,6 +2574,9 @@ textarea {
     min-height: auto;
     border-right: 0;
     border-bottom: var(--border-thin) solid var(--line);
+    position: static;
+    height: auto;
+    overflow: visible;
   }
 
   .main {
@@ -2419,15 +2627,17 @@ textarea {
     flex: 1 1 100%;
   }
 
-  .applications-search {
-    width: 100%;
+  .applications-meta {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+
+  .applications-tools {
     justify-content: flex-end;
   }
 
   .applications-search.open input {
-    width: auto;
-    min-width: 0;
-    flex: 1 1 auto;
+    width: min(var(--rail-width), 40vw);
   }
 }
 
@@ -2664,6 +2874,102 @@ textarea {
 
 .tag-input:focus-within {
   border-color: var(--gold);
+}
+
+/* Stages preferences: one row per stage with an on/off switch. */
+.stage-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-hairline);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--r-sm);
+}
+
+.stage-row:hover {
+  background: var(--hover-soft);
+}
+
+.stage-row-name {
+  color: var(--ink);
+  font-size: var(--type-control);
+}
+
+.stage-switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--line2);
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.stage-switch.on {
+  background: var(--gold);
+}
+
+.stage-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--paper);
+  transition: transform .2s ease;
+}
+
+.stage-switch.on .stage-switch-knob {
+  transform: translateX(18px);
+}
+
+.prefs-empty {
+  padding: var(--space-4) 0;
+}
+
+.prefs-empty-title {
+  color: var(--ink);
+  font-size: var(--type-body);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-1);
+}
+
+.prefs-empty-copy {
+  color: var(--ink2);
+  font-size: var(--type-secondary);
+  line-height: 1.55;
+}
+
+/* Keyword editor: text field on top, entered chips stacked below it. */
+.kw-input {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.kw-input .kw-field {
+  width: 100%;
+  min-width: 0;
+  flex: none;
+}
+
+.kw-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .tag-input input {
@@ -2907,4 +3213,109 @@ textarea {
 .crop-zoom input:focus {
   border: 0;
   box-shadow: none;
+}
+
+/* Admin Panel — remote job board curation */
+.prefs-section-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--type-body);
+  font-weight: var(--weight-medium);
+}
+
+.prefs-hint {
+  margin: calc(var(--space-2) * -1) 0 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  line-height: 1.5;
+}
+
+/* Section header with a title and a trailing action (e.g. the admin
+   "Re-resolve not found" button). */
+.prefs-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.prefs-hint code {
+  padding: 0 var(--space-1);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  font-size: 0.92em;
+}
+
+.prefs-card form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.admin-company-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-company-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-thin) solid var(--line);
+}
+
+.admin-company-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-company-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.admin-company-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 0 0 auto;
+}
+
+.admin-company-name {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-status {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--r-pill);
+  font-size: var(--type-chip);
+  font-weight: var(--weight-regular);
+  line-height: 1;
+}
+
+.admin-status-resolved {
+  background: var(--rest-soft);
+  color: var(--rest-text);
+}
+
+.admin-status-pending {
+  background: var(--gold-soft);
+  color: var(--gold-text);
+}
+
+.admin-status-unresolved {
+  background: var(--net-soft);
+  color: var(--net-text);
 }

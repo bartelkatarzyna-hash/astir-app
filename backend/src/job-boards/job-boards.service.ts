@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../database/prisma.service'
+import { UserSettableListingStatus } from './dto/update-listing.dto'
 import { companyKey } from './normalized-job'
 
 export type JobBoardListing = {
@@ -8,6 +9,7 @@ export type JobBoardListing = {
   companyName: string
   location: string | null
   workMode: string | null
+  contentLanguage: string | null
   url: string
   postedAt: Date | null
   firstSeenAt: Date
@@ -31,9 +33,11 @@ export class JobBoardsService {
   // board once its company is on the user's watchlist (its openings show there
   // instead) or the user has logged an application for it (it lives on Pipeline
   // / All applications now). Mirrors how WatchlistView hides applied roles.
+  // Listings from the global remote-company list are also excluded — they live
+  // exclusively on the Remote Job Board.
   async listForUser(userId: string): Promise<JobBoardListing[]> {
     const cutoff = new Date(Date.now() - MAX_LISTING_AGE_DAYS * 24 * 60 * 60 * 1000)
-    const [rows, watchlistKeys, appliedListingIds] = await Promise.all([
+    const [rows, watchlistKeys, appliedListingIds, remoteSourceIds] = await Promise.all([
       this.prisma.userJobListing.findMany({
         where: {
           userId,
@@ -43,18 +47,22 @@ export class JobBoardsService {
         },
         include: {
           listing: {
-            include: { sources: { select: { provider: true } } },
+            include: { sources: { select: { provider: true, jobSourceId: true } } },
           },
         },
       }),
       this.watchlistCompanyKeys(userId),
       this.appliedListingIds(userId),
+      this.remoteCompanySourceIds(),
     ])
     return rows
       .filter(
         (row) =>
           !appliedListingIds.has(row.listing.id) &&
-          !watchlistKeys.has(companyKey(row.listing.companyName)),
+          !watchlistKeys.has(companyKey(row.listing.companyName)) &&
+          !row.listing.sources.some(
+            (source) => source.jobSourceId && remoteSourceIds.has(source.jobSourceId),
+          ),
       )
       .map((row) => ({
         id: row.listing.id,
@@ -62,6 +70,7 @@ export class JobBoardsService {
         companyName: row.listing.companyName,
         location: row.listing.location,
         workMode: row.listing.workMode,
+        contentLanguage: row.listing.contentLanguage,
         url: row.listing.url,
         postedAt: row.listing.postedAt,
         firstSeenAt: row.listing.firstSeenAt,
@@ -73,6 +82,22 @@ export class JobBoardsService {
       // we first saw them, so a just-ingested but ancient aggregator req can't
       // masquerade as fresh at the top of the feed.
       .sort((a, b) => this.effectiveDate(b) - this.effectiveDate(a))
+  }
+
+  // Set the user's status on a listing — e.g. 'irrelevant' to drop it into the
+  // quiet section, or 'new' to bring it back to the main feed. Both values are
+  // still returned by listForUser (only 'dismissed' is hidden), so the frontend
+  // splits the feed on status. updateMany is a no-op when the relation is gone
+  // (the listing stopped matching preferences), so a stale click can't 500.
+  async setStatus(
+    userId: string,
+    listingId: string,
+    status: UserSettableListingStatus,
+  ): Promise<void> {
+    await this.prisma.userJobListing.updateMany({
+      where: { userId, listingId },
+      data: { status },
+    })
   }
 
   private effectiveDate(listing: JobBoardListing): number {
@@ -87,6 +112,16 @@ export class JobBoardsService {
       select: { nameKey: true },
     })
     return new Set(rows.map((row) => row.nameKey))
+  }
+
+  // JobSource ids backing the global remote-company list, so their listings
+  // stay off the regular Job Board (they belong to the Remote Job Board).
+  private async remoteCompanySourceIds(): Promise<Set<string>> {
+    const rows = await this.prisma.remoteCompany.findMany({
+      where: { jobSourceId: { not: null } },
+      select: { jobSourceId: true },
+    })
+    return new Set(rows.map((row) => row.jobSourceId).filter((id): id is string => id !== null))
   }
 
   // Listing ids the user has already logged an application for, so those drop

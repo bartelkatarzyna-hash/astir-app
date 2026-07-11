@@ -9,6 +9,7 @@ import { ArbeitnowProvider } from './providers/arbeitnow.provider'
 import { AshbyProvider } from './providers/ashby.provider'
 import { GreenhouseProvider } from './providers/greenhouse.provider'
 import { JOB_BOARD_PROVIDERS } from './providers/job-board-provider'
+import { JoinProvider } from './providers/join.provider'
 import { JobPostingProvider } from './providers/jobposting.provider'
 import { LeverProvider } from './providers/lever.provider'
 import { PersonioProvider } from './providers/personio.provider'
@@ -34,6 +35,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
     RecruiteeProvider,
     TeamtailorProvider,
     PersonioProvider,
+    JoinProvider,
     WorkdayProvider,
     JobPostingProvider,
     ArbeitnowProvider,
@@ -50,6 +52,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         recruitee: RecruiteeProvider,
         teamtailor: TeamtailorProvider,
         personio: PersonioProvider,
+        join: JoinProvider,
         workday: WorkdayProvider,
         // Generic schema.org reader last: it only runs as a resolution fallback.
         jobPosting: JobPostingProvider,
@@ -65,6 +68,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         recruitee,
         teamtailor,
         personio,
+        join,
         workday,
         jobPosting,
         arbeitnow,
@@ -80,6 +84,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         RecruiteeProvider,
         TeamtailorProvider,
         PersonioProvider,
+        JoinProvider,
         WorkdayProvider,
         JobPostingProvider,
         ArbeitnowProvider,

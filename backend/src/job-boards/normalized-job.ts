@@ -16,6 +16,11 @@ export type NormalizedJob = {
   workMode: WorkMode | null
   url: string
   postedAt: Date | null
+  // ISO 639-1 code of the language the ad is *written in* (e.g. 'en', 'de'),
+  // when the provider exposes it. This is the posting's content language, a
+  // weak proxy for the language it expects — not a parsed requirement. Optional
+  // because most providers don't carry it; omitted reads the same as null.
+  contentLanguage?: string | null
 }
 
 // Collapses a string for identity comparison: lowercase, diacritics stripped,

@@ -2,6 +2,7 @@ import { companyHandleCandidates } from './job-board-provider'
 import { AshbyProvider } from './ashby.provider'
 import { GreenhouseProvider } from './greenhouse.provider'
 import { JobPostingProvider } from './jobposting.provider'
+import { JoinProvider } from './join.provider'
 import { LeverProvider } from './lever.provider'
 import { PersonioProvider } from './personio.provider'
 import { RecruiteeProvider } from './recruitee.provider'
@@ -43,6 +44,7 @@ describe('handleFromUrl', () => {
   const recruitee = new RecruiteeProvider()
   const teamtailor = new TeamtailorProvider()
   const personio = new PersonioProvider()
+  const join = new JoinProvider()
   const workday = new WorkdayProvider()
   const jobPosting = new JobPostingProvider()
 
@@ -95,6 +97,12 @@ describe('handleFromUrl', () => {
     expect(personio.handleFromUrl('https://www.personio.com/pricing')).toBeNull()
   })
 
+  it('extracts a Join board slug from careers and per-job links', () => {
+    expect(join.handleFromUrl('https://join.com/companies/hellofresh')).toBe('hellofresh')
+    expect(join.handleFromUrl('https://join.com/companies/join/16425272-vp-revenue')).toBe('join')
+    expect(join.handleFromUrl('https://join.com/careers')).toBeNull()
+  })
+
   it('packs a Workday careers URL into tenant:dc:site, dropping the locale', () => {
     expect(
       workday.handleFromUrl('https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite/job/x'),
@@ -118,6 +126,7 @@ describe('handleFromUrl', () => {
     expect(smartRecruiters.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
     expect(teamtailor.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
     expect(personio.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
+    expect(join.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
     expect(workday.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
   })
 })

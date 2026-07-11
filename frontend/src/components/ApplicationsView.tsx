@@ -5,13 +5,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   type Application,
   type Status,
+  createApplication,
   deleteApplication,
   normalizeMode,
+  normalizeStatus,
   plainDate,
   stageRank,
+  todayKey,
 } from '@/lib/applications'
+import { applicationsToCsv, parseApplicationsCsv } from '@/lib/applications-csv'
 import { KebabMenu } from './applications/KebabMenu'
 import { LogApplicationModal, type LogApplicationInitial } from './applications/LogApplicationModal'
+import { StageFilter } from './applications/StageFilter'
 import { StageSelect } from './applications/StageSelect'
 import { useApplications } from './applications/useApplications'
 import { ChevronDownIcon, OpenIcon, SearchIcon } from './icons'
@@ -25,10 +30,10 @@ const COLUMNS: Column[] = [
   { key: 'company', label: 'Company', sortable: true },
   { key: 'role', label: 'Role', sortable: true },
   { key: 'stage', label: 'Stage', sortable: true },
+  { key: 'applied', label: 'Applied' },
   { key: 'location', label: 'Location' },
   { key: 'type', label: 'Type' },
   { key: 'posted', label: 'Posted' },
-  { key: 'applied', label: 'Applied' },
   { key: 'menu', label: '' },
 ]
 
@@ -43,12 +48,28 @@ function countText(count: number) {
   return count === 1 ? '1 application' : `${count} applications`
 }
 
+// Collapse a possibly multi-value location into a compact label plus the full
+// list for the hover tooltip. "Germany,Austria,Finland" becomes "Germany +2"
+// with all three revealed on hover; a single value is shown as-is.
+function locationCell(location: string | null | undefined) {
+  const parts = (location ?? '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length === 0) return { display: '—', tooltip: undefined }
+  if (parts.length === 1) return { display: parts[0], tooltip: parts[0] }
+  return { display: `${parts[0]} +${parts.length - 1}`, tooltip: parts.join(', ') }
+}
+
 export function ApplicationsView() {
-  const { applications, changeStage, reload, overlay } = useApplications()
+  const { applications, changeStage, reload, showSnack, overlay } = useApplications()
+  const importInput = useRef<HTMLInputElement>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [stageFilter, setStageFilter] = useState<Set<Status>>(new Set())
   const [sort, setSort] = useState<Sort>({ key: 'company', dir: 'asc' })
   const [widths, setWidths] = useState<Record<string, number>>({})
+  const [logging, setLogging] = useState(false)
   const [editing, setEditing] = useState<LogApplicationInitial | null>(null)
   const [deleting, setDeleting] = useState<Application | null>(null)
   const resizing = useRef<{ key: string; startX: number; startWidth: number } | null>(null)
@@ -71,6 +92,9 @@ export function ApplicationsView() {
           ? `${application.company} ${application.role}`.toLowerCase().includes(needle)
           : true,
       )
+      .filter((application) =>
+        stageFilter.size === 0 ? true : stageFilter.has(normalizeStatus(application.status)),
+      )
       .sort((a, b) => {
         let result = 0
         if (sort.key === 'stage') result = stageRank(a.status) - stageRank(b.status)
@@ -81,7 +105,7 @@ export function ApplicationsView() {
         }
         return sort.dir === 'desc' ? -result : result
       })
-  }, [all, query, sort])
+  }, [all, query, stageFilter, sort])
 
   function toggleSort(key: SortKey) {
     setSort((current) =>
@@ -155,35 +179,102 @@ export function ApplicationsView() {
     await reload()
   }
 
+  function exportCsv() {
+    const csv = applicationsToCsv(all)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `applications-${todayKey()}.csv`
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  async function importCsv(file: File) {
+    let parsed
+    try {
+      parsed = parseApplicationsCsv(await file.text())
+    } catch {
+      showSnack({ text: 'Could not read that file. Export a CSV to see the expected columns.' }, 5000)
+      return
+    }
+    if (parsed.rows.length === 0) {
+      showSnack({ text: 'No rows to import. Each row needs at least a company or role.' }, 5000)
+      return
+    }
+    const results = await Promise.allSettled(parsed.rows.map((row) => createApplication(row)))
+    const added = results.filter((result) => result.status === 'fulfilled').length
+    const failed = results.length - added
+    await reload()
+    const notes: string[] = []
+    if (added) notes.push(`Imported ${countText(added)}`)
+    if (failed) notes.push(`${failed} couldn't be added`)
+    if (parsed.incomplete) notes.push(`${parsed.incomplete} had missing info, added as incomplete`)
+    showSnack({ text: `${notes.join(' — ')}.` }, 5000)
+  }
+
+  async function onImportChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) await importCsv(file)
+  }
+
   return (
     <section className="screen applications-screen" data-screen="applications">
       <Link className="crumb" href="/pipeline">
         Pipeline
       </Link>
       <div className="applications-head">
-        <div>
+        <div className="applications-title-row">
           <h1>All applications</h1>
-          <div className="applications-count">{countText(all.length)}</div>
-        </div>
-        <div className={`applications-search ${searchOpen ? 'open' : ''}`.trim()}>
-          <button
-            className="round-icon"
-            type="button"
-            aria-label="Search"
-            data-tooltip="Search"
-            onClick={() => setSearchOpen((open) => !open)}
-          >
-            <SearchIcon />
+          <button className="btn ghost" type="button" onClick={() => setLogging(true)}>
+            Log application
           </button>
-          <input
-            type="search"
-            autoComplete="off"
-            placeholder="Search"
-            hidden={!searchOpen}
-            aria-hidden={!searchOpen}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
+        </div>
+        <div className="applications-meta">
+          <div className="applications-count-search">
+            <div className="applications-count">{countText(all.length)}</div>
+            <div className={`applications-search ${searchOpen ? 'open' : ''}`.trim()}>
+              <button
+                className="round-icon"
+                type="button"
+                aria-label="Search"
+                data-tooltip="Search"
+                onClick={() => setSearchOpen((open) => !open)}
+              >
+                <SearchIcon />
+              </button>
+              <input
+                type="search"
+                autoComplete="off"
+                placeholder="Search"
+                hidden={!searchOpen}
+                aria-hidden={!searchOpen}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </div>
+          </div>
+          <div className="applications-tools">
+            <StageFilter selected={stageFilter} onChange={setStageFilter} />
+            <KebabMenu menuClassName="application-menu">
+              <button type="button" onClick={() => importInput.current?.click()}>
+                Import from CSV
+              </button>
+              <button type="button" onClick={exportCsv}>
+                Export to CSV
+              </button>
+            </KebabMenu>
+            <input
+              ref={importInput}
+              hidden
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(event) => void onImportChange(event)}
+            />
+          </div>
         </div>
       </div>
       <div className="applications-table-wrap">
@@ -235,12 +326,25 @@ export function ApplicationsView() {
             ) : (
               rows.map((application) => {
                 const openUrl = application.link || application.posting?.url || ''
+                const location = locationCell(application.posting?.location)
                 return (
                   <tr key={application.id}>
-                    <td>{tableValue(application.company)}</td>
+                    <td>
+                      <span
+                        className="cell-text"
+                        data-tooltip={application.company || undefined}
+                      >
+                        {tableValue(application.company)}
+                      </span>
+                    </td>
                     <td>
                       <span className="table-role">
-                        <span>{tableValue(application.role)}</span>
+                        <span
+                          className="cell-text"
+                          data-tooltip={application.role || undefined}
+                        >
+                          {tableValue(application.role)}
+                        </span>
                         {openUrl ? (
                           <a
                             className="round-icon small"
@@ -264,14 +368,28 @@ export function ApplicationsView() {
                         }
                       />
                     </td>
-                    <td>{tableValue(application.posting?.location)}</td>
                     <td>
-                      {application.posting?.workMode
-                        ? normalizeMode(application.posting.workMode)
-                        : '—'}
+                      <span className="cell-text">
+                        {tableValue(plainDate(application.appliedDate))}
+                      </span>
                     </td>
-                    <td>{tableValue(plainDate(application.posting?.postedAt))}</td>
-                    <td>{tableValue(plainDate(application.appliedDate))}</td>
+                    <td>
+                      <span className="cell-text" data-tooltip={location.tooltip}>
+                        {location.display}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="cell-text">
+                        {application.posting?.workMode
+                          ? normalizeMode(application.posting.workMode)
+                          : '—'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="cell-text">
+                        {tableValue(plainDate(application.posting?.postedAt))}
+                      </span>
+                    </td>
                     <td>
                       <KebabMenu menuClassName="application-menu">
                         <button type="button" onClick={() => openEdit(application)}>
@@ -289,6 +407,17 @@ export function ApplicationsView() {
           </tbody>
         </table>
       </div>
+
+      {logging ? (
+        <LogApplicationModal
+          initial={{ status: 'Applied' }}
+          onClose={() => setLogging(false)}
+          onSaved={(_application, isNew) => {
+            void reload()
+            if (isNew) showSnack({ text: 'Application logged.' })
+          }}
+        />
+      ) : null}
 
       {editing ? (
         <LogApplicationModal

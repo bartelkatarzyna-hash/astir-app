@@ -9,10 +9,11 @@ type Row = {
     companyName: string
     location: string | null
     workMode: string | null
+    contentLanguage: string | null
     url: string
     postedAt: Date | null
     firstSeenAt: Date
-    sources: Array<{ provider: string }>
+    sources: Array<{ provider: string; jobSourceId: string | null }>
   }
   matchedKeywords: string[]
   status: string
@@ -21,7 +22,7 @@ type Row = {
 function row(
   id: string,
   companyName: string,
-  dates: { postedAt?: string | null; firstSeenAt?: string } = {},
+  dates: { postedAt?: string | null; firstSeenAt?: string; jobSourceId?: string } = {},
 ): Row {
   return {
     listing: {
@@ -30,10 +31,11 @@ function row(
       companyName,
       location: 'Berlin, DE',
       workMode: 'Remote',
+      contentLanguage: null,
       url: `https://example.com/${id}`,
       postedAt: dates.postedAt ? new Date(dates.postedAt) : null,
       firstSeenAt: new Date(dates.firstSeenAt ?? '2026-07-01T00:00:00Z'),
-      sources: [{ provider: 'arbeitnow' }],
+      sources: [{ provider: 'arbeitnow', jobSourceId: dates.jobSourceId ?? null }],
     },
     matchedKeywords: ['Product Manager'],
     status: 'new',
@@ -44,6 +46,9 @@ function makeService(options: {
   rows: Row[]
   watchlist?: string[]
   appliedListingIds?: string[]
+  // JobSource ids backing the global remote-company list; their listings are
+  // excluded from the regular Job Board.
+  remoteSourceIds?: string[]
 }): JobBoardsService {
   const prisma = {
     userJobListing: { findMany: jest.fn().mockResolvedValue(options.rows) },
@@ -51,6 +56,11 @@ function makeService(options: {
       findMany: jest
         .fn()
         .mockResolvedValue((options.watchlist ?? []).map((name) => ({ nameKey: companyKey(name) }))),
+    },
+    remoteCompany: {
+      findMany: jest
+        .fn()
+        .mockResolvedValue((options.remoteSourceIds ?? []).map((jobSourceId) => ({ jobSourceId }))),
     },
     application: {
       findMany: jest
@@ -73,6 +83,15 @@ describe('JobBoardsService.listForUser exclusions', () => {
       rows: [row('a', 'Resourcify'), row('b', 'Globex')],
       // Watchlist stores a different casing/spacing; matching is by companyKey.
       watchlist: ['  resourcify '],
+    })
+    const listings = await service.listForUser('u1')
+    expect(listings.map((listing) => listing.id)).toEqual(['b'])
+  })
+
+  it('hides a listing backed by a remote-company source (it lives on the Remote Job Board)', async () => {
+    const service = makeService({
+      rows: [row('a', 'Acme', { jobSourceId: 'src-remote' }), row('b', 'Globex')],
+      remoteSourceIds: ['src-remote'],
     })
     const listings = await service.listForUser('u1')
     expect(listings.map((listing) => listing.id)).toEqual(['b'])

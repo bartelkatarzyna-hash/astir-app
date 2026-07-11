@@ -13,7 +13,6 @@ type Preferences = {
   hiringRegions: string[]
 }
 
-const WORK_MODE_OPTIONS = ['Remote', 'Hybrid', 'On-Site']
 const CONTRACT_TYPE_OPTIONS = ['FTE', 'Freelance', 'Contract']
 const TERM_OPTIONS = ['Short term', 'Long term']
 
@@ -133,70 +132,76 @@ function KeywordListInput({
   }
 
   return (
-    <div className="tag-input">
-      {items.map((item, index) => (
-        <span className={`kw-chip${item.mode === 'isNot' ? ' exclude' : ''}`} key={item.term}>
-          <span className="kw-chip-term">{item.term}</span>
-          <span className="kw-chip-toggle-wrap">
-            <button
-              type="button"
-              className="kw-chip-toggle"
-              aria-haspopup="listbox"
-              aria-expanded={openIndex === index}
-              onClick={() => setOpenIndex(openIndex === index ? null : index)}
-            >
-              {item.mode === 'isNot' ? 'is not' : 'is'}
-            </button>
-            {openIndex === index ? (
-              <>
-                <button
-                  type="button"
-                  className="kw-popover-backdrop"
-                  aria-hidden="true"
-                  tabIndex={-1}
-                  onClick={() => setOpenIndex(null)}
-                />
-                <span className="kw-popover" role="listbox">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={item.mode === 'is'}
-                    className={`kw-popover-opt${item.mode === 'is' ? ' sel' : ''}`}
-                    onClick={() => setMode(index, 'is')}
-                  >
-                    is
-                  </button>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={item.mode === 'isNot'}
-                    className={`kw-popover-opt${item.mode === 'isNot' ? ' sel' : ''}`}
-                    onClick={() => setMode(index, 'isNot')}
-                  >
-                    is not
-                  </button>
-                </span>
-              </>
-            ) : null}
-          </span>
-          <button
-            type="button"
-            className="kw-chip-x"
-            aria-label={`Remove ${item.term}`}
-            onClick={() => removeAt(index)}
-          >
-            ×
-          </button>
-        </span>
-      ))}
+    // Input sits on top; entered keywords stack below it as chips.
+    <div className="tag-input kw-input">
       <input
         id="pref-keywords"
+        className="kw-field"
         value={draft}
         placeholder={items.length ? 'Add more…' : 'e.g. Product Manager'}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={onKeyDown}
         onBlur={commitDraft}
       />
+      {items.length ? (
+        <div className="kw-chip-list">
+          {items.map((item, index) => (
+            <span className={`kw-chip${item.mode === 'isNot' ? ' exclude' : ''}`} key={item.term}>
+              <span className="kw-chip-term">{item.term}</span>
+              <span className="kw-chip-toggle-wrap">
+                <button
+                  type="button"
+                  className="kw-chip-toggle"
+                  aria-haspopup="listbox"
+                  aria-expanded={openIndex === index}
+                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                >
+                  {item.mode === 'isNot' ? 'is not' : 'is'}
+                </button>
+                {openIndex === index ? (
+                  <>
+                    <button
+                      type="button"
+                      className="kw-popover-backdrop"
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      onClick={() => setOpenIndex(null)}
+                    />
+                    <span className="kw-popover" role="listbox">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={item.mode === 'is'}
+                        className={`kw-popover-opt${item.mode === 'is' ? ' sel' : ''}`}
+                        onClick={() => setMode(index, 'is')}
+                      >
+                        is
+                      </button>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={item.mode === 'isNot'}
+                        className={`kw-popover-opt${item.mode === 'isNot' ? ' sel' : ''}`}
+                        onClick={() => setMode(index, 'isNot')}
+                      >
+                        is not
+                      </button>
+                    </span>
+                  </>
+                ) : null}
+              </span>
+              <button
+                type="button"
+                className="kw-chip-x"
+                aria-label={`Remove ${item.term}`}
+                onClick={() => removeAt(index)}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -297,7 +302,7 @@ export function WatchlistPreferences() {
   return (
     <section className="screen">
       <div className="page-head">
-        <h1>Watchlist Preferences</h1>
+        <h1>Job preferences</h1>
       </div>
       {!prefs ? (
         <p className="prefs-loading">{status === 'error' ? 'Could not load preferences.' : 'Loading…'}</p>
@@ -311,14 +316,6 @@ export function WatchlistPreferences() {
               keywords={prefs.keywords}
               excludedKeywords={prefs.excludedKeywords}
               onChange={(keywords, excludedKeywords) => update({ keywords, excludedKeywords })}
-            />
-          </Field>
-          <Field label="Type" hint="Which working setups you would take.">
-            <OptionToggles
-              label="Type"
-              options={WORK_MODE_OPTIONS}
-              values={prefs.workModes}
-              onChange={(workModes) => update({ workModes })}
             />
           </Field>
           <Field label="Contract type">

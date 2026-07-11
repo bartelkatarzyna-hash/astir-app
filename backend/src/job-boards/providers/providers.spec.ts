@@ -3,6 +3,7 @@ import { ArbeitnowProvider } from './arbeitnow.provider'
 import { AshbyProvider } from './ashby.provider'
 import { GreenhouseProvider } from './greenhouse.provider'
 import { JobPostingProvider } from './jobposting.provider'
+import { JoinProvider } from './join.provider'
 import { LeverProvider } from './lever.provider'
 import { PersonioProvider } from './personio.provider'
 import { RecruiteeProvider } from './recruitee.provider'
@@ -439,6 +440,67 @@ describe('PersonioProvider.normalize', () => {
   })
 })
 
+describe('JoinProvider.normalize', () => {
+  const provider = new JoinProvider()
+
+  it('builds the public job URL from the resolved domain and idParam', () => {
+    expect(
+      provider.normalize(
+        {
+          id: 16312205,
+          idParam: '16425272-vp-revenue-m-f-d',
+          title: 'VP Revenue (m/f/d)',
+          createdAt: '2026-06-15T16:44:22.659Z',
+          workplaceType: 'HYBRID',
+          languageId: 5,
+          city: { cityName: 'Berlin', regionName: 'Berlin', countryName: 'Germany' },
+          country: { name: 'Germany' },
+        },
+        source,
+        'join',
+      ),
+    ).toEqual({
+      provider: 'join',
+      externalId: '16312205',
+      title: 'VP Revenue (m/f/d)',
+      companyName: 'Acme',
+      location: 'Berlin, Germany',
+      locations: ['Berlin, Germany'],
+      workMode: 'Hybrid',
+      url: 'https://join.com/companies/join/16425272-vp-revenue-m-f-d',
+      postedAt: new Date('2026-06-15T16:44:22.659Z'),
+      contentLanguage: 'en',
+    })
+  })
+
+  it('flags remote roles, falls back to the country, and drops jobs without an idParam', () => {
+    const job = provider.normalize(
+      {
+        id: 5,
+        idParam: '5-pm',
+        title: 'PM',
+        workplaceType: 'REMOTE',
+        languageId: 1,
+        country: { name: 'Germany' },
+      },
+      source,
+      'acme',
+    )
+    expect(job?.workMode).toBe('Remote')
+    expect(job?.location).toBe('Germany')
+    expect(job?.contentLanguage).toBe('de')
+    expect(job?.postedAt).toBeNull()
+    // An unknown languageId falls through to null rather than a bogus code.
+    expect(
+      provider.normalize({ id: 6, idParam: '6-x', title: 'X', languageId: 999 }, source, 'acme')
+        ?.contentLanguage,
+    ).toBeNull()
+    expect(
+      provider.normalize({ id: 5, title: 'No idParam' }, source, 'acme'),
+    ).toBeNull()
+  })
+})
+
 describe('WorkdayProvider.normalize', () => {
   const provider = new WorkdayProvider()
   const workday = { externalId: 'nvidia:wd5:NVIDIAExternalCareerSite', companyName: 'NVIDIA' }
@@ -493,6 +555,7 @@ describe('JobPostingProvider.normalize', () => {
           datePosted: '2026-05-01',
           identifier: { value: 'REQ-42' },
           hiringOrganization: { name: 'Acme Inc' },
+          inLanguage: 'de-DE',
           jobLocation: [
             { address: { addressLocality: 'Berlin', addressCountry: 'DE' } },
             { address: { addressLocality: 'Munich', addressCountry: { name: 'Germany' } } },
@@ -510,7 +573,31 @@ describe('JobPostingProvider.normalize', () => {
       workMode: null,
       url: 'https://acme.example/jobs/staff-engineer',
       postedAt: new Date('2026-05-01'),
+      contentLanguage: 'de',
     })
+  })
+
+  it('reads inLanguage as a Language object and ignores a plain language name', () => {
+    const fromObject = provider.normalize(
+      {
+        '@type': 'JobPosting',
+        title: 'PM',
+        url: 'https://acme.example/jobs/pm',
+        inLanguage: { name: 'en' },
+      },
+      page,
+    )
+    expect(fromObject?.contentLanguage).toBe('en')
+    const fromName = provider.normalize(
+      {
+        '@type': 'JobPosting',
+        title: 'PM',
+        url: 'https://acme.example/jobs/pm2',
+        inLanguage: 'German',
+      },
+      page,
+    )
+    expect(fromName?.contentLanguage).toBeNull()
   })
 
   it('flags telecommute, falls back to the page URL and source company, and drops untitled postings', () => {

@@ -4,8 +4,8 @@ import { PrismaService } from '../database/prisma.service'
 import { CompanyResolutionService } from '../job-boards/company-resolution.service'
 import { JobIngestionService } from '../job-boards/job-ingestion.service'
 import { JobMatchingService } from '../job-boards/job-matching.service'
-import { companyKey, normalizeForIdentity } from '../job-boards/normalized-job'
-import { matchesHiringRegions } from '../job-boards/region-matching'
+import { companyKey } from '../job-boards/normalized-job'
+import { foldOpenings } from '../job-boards/opening-folding'
 
 export type WatchlistRole = {
   id: string
@@ -19,29 +19,15 @@ export type WatchlistRole = {
   // "Berlin +2".
   locations: string[]
   workMode: string | null
+  contentLanguage: string | null
   postedAt: Date | null
   firstSeenAt: Date
   matchedKeywords: string[]
 }
 
-// One matched posting before same-opening rows are folded together.
+// One matched posting before same-opening rows are folded together. Matches
+// the shared FoldableOpening shape consumed by foldOpenings.
 type RawRole = WatchlistRole & { companyName: string }
-
-// Generic Europe/EU phrasings: a location matching these only counts as a weak
-// signal, so a posting that matches a specific selected country (Germany) wins
-// over one that only sits "in Europe" (France, when France wasn't selected).
-const GENERIC_REGION_KEYS = new Set(['eu', 'europe', 'emea', 'european union'])
-
-// Individual location strings for a posting. Providers give extras either as
-// separate array entries or as one ";"-joined string; flatten both so each
-// counts once when folding and toward the "+N" tally.
-function locationStrings(role: RawRole): string[] {
-  const source = role.locations.length > 0 ? role.locations : role.location ? [role.location] : []
-  return source
-    .flatMap((value) => value.split(';'))
-    .map((value) => value.trim())
-    .filter(Boolean)
-}
 
 export type WatchlistCompanyView = {
   id: string
@@ -156,6 +142,17 @@ export class WatchlistService {
     return this.getView(userId, id)
   }
 
+  // Re-attempt resolution on demand (e.g. after a new ATS provider ships, a
+  // company that was "unresolved" may now be found). No-op for a company that
+  // already resolved — its jobs are already flowing.
+  async resolve(userId: string, id: string): Promise<WatchlistCompanyView> {
+    const company = await this.ownedCompany(userId, id)
+    if (company.resolutionStatus !== 'resolved') {
+      await this.resolveAndBackfill(userId, company)
+    }
+    return this.getView(userId, id)
+  }
+
   async remove(userId: string, id: string): Promise<void> {
     await this.ownedCompany(userId, id)
     await this.prisma.watchlistCompany.delete({ where: { id } })
@@ -167,27 +164,38 @@ export class WatchlistService {
   // matches to this user. Failures downgrade the company to "unresolved"
   // rather than failing the request.
   private async resolveAndBackfill(userId: string, company: WatchlistCompany): Promise<void> {
+    let source
     try {
-      const source = await this.resolution.resolveToSource(company.name, company.careersUrl)
-      if (!source) {
-        await this.prisma.watchlistCompany.update({
-          where: { id: company.id },
-          data: { jobSourceId: null, resolutionStatus: 'unresolved' },
-        })
-        return
-      }
+      source = await this.resolution.resolveToSource(company.name, company.careersUrl)
+    } catch (error) {
+      this.logger.warn(`Resolve failed for "${company.name}": ${String(error)}`)
       await this.prisma.watchlistCompany.update({
         where: { id: company.id },
-        data: { jobSourceId: source.id, resolutionStatus: 'resolved' },
+        data: { jobSourceId: null, resolutionStatus: 'unresolved' },
       })
+      return
+    }
+    if (!source) {
+      await this.prisma.watchlistCompany.update({
+        where: { id: company.id },
+        data: { jobSourceId: null, resolutionStatus: 'unresolved' },
+      })
+      return
+    }
+    await this.prisma.watchlistCompany.update({
+      where: { id: company.id },
+      data: { jobSourceId: source.id, resolutionStatus: 'resolved' },
+    })
+    // Resolved once the source is linked. A failure pulling jobs or rematching
+    // now (rate limit, transient upstream error) must NOT downgrade it back to
+    // "unresolved" — the hourly cron will retry the pull.
+    try {
       await this.ingestion.syncOneSource(source)
       await this.matching.rematchUser(userId)
     } catch (error) {
-      this.logger.warn(`Resolve/backfill failed for "${company.name}": ${String(error)}`)
-      await this.prisma.watchlistCompany.update({
-        where: { id: company.id },
-        data: { resolutionStatus: 'unresolved' },
-      })
+      this.logger.warn(
+        `Initial backfill failed for "${company.name}" (will retry on next poll): ${String(error)}`,
+      )
     }
   }
 
@@ -236,6 +244,7 @@ export class WatchlistService {
         location: row.listing.location,
         locations: row.listing.locations,
         workMode: row.listing.workMode,
+        contentLanguage: row.listing.contentLanguage,
         postedAt: row.listing.postedAt,
         firstSeenAt: row.listing.firstSeenAt,
         matchedKeywords: row.matchedKeywords,
@@ -248,92 +257,9 @@ export class WatchlistService {
 
     const result = new Map<string, WatchlistRole[]>()
     for (const [key, raws] of byKey) {
-      result.set(key, this.foldOpenings(raws, appliedListingIds, hiringRegions))
+      result.set(key, foldOpenings(raws, hiringRegions, appliedListingIds))
     }
     return result
-  }
-
-  // Group a company's postings by role title, drop any opening the user has
-  // applied to (any of its postings counts), and collapse each remaining group
-  // into one row linked to the best-matching location.
-  private foldOpenings(
-    raws: RawRole[],
-    appliedListingIds: Set<string>,
-    hiringRegions: string[],
-  ): WatchlistRole[] {
-    const groups = new Map<string, RawRole[]>()
-    for (const raw of raws) {
-      const groupKey = normalizeForIdentity(raw.title) || raw.id
-      const bucket = groups.get(groupKey)
-      if (bucket) bucket.push(raw)
-      else groups.set(groupKey, [raw])
-    }
-
-    const combined: WatchlistRole[] = []
-    for (const group of groups.values()) {
-      if (group.some((raw) => appliedListingIds.has(raw.id))) {
-        continue
-      }
-      combined.push(this.combineGroup(group, hiringRegions))
-    }
-    // Newest opening first, matching the rest of the watchlist ordering.
-    combined.sort((a, b) => b.firstSeenAt.getTime() - a.firstSeenAt.getTime())
-    return combined
-  }
-
-  private combineGroup(group: RawRole[], hiringRegions: string[]): WatchlistRole {
-    // Pick the posting whose location best matches the user's selected regions;
-    // break ties by the newest posting.
-    const ranked = [...group].sort((a, b) => {
-      const score = this.regionScore(locationStrings(b), hiringRegions) -
-        this.regionScore(locationStrings(a), hiringRegions)
-      return score !== 0 ? score : b.firstSeenAt.getTime() - a.firstSeenAt.getTime()
-    })
-    const best = ranked[0]
-
-    // Distinct locations across the whole opening, best-matching first.
-    const seen = new Set<string>()
-    const locations: string[] = []
-    for (const raw of ranked) {
-      for (const location of locationStrings(raw)) {
-        const normalized = location.toLowerCase()
-        if (!seen.has(normalized)) {
-          seen.add(normalized)
-          locations.push(location)
-        }
-      }
-    }
-
-    const newest = group.reduce(
-      (latest, raw) => (raw.firstSeenAt > latest ? raw.firstSeenAt : latest),
-      group[0].firstSeenAt,
-    )
-    return {
-      id: best.id,
-      title: best.title,
-      url: best.url,
-      location: locations[0] ?? best.location,
-      locations,
-      workMode: best.workMode,
-      postedAt: best.postedAt,
-      firstSeenAt: newest,
-      matchedKeywords: [...new Set(group.flatMap((raw) => raw.matchedKeywords))],
-    }
-  }
-
-  // 2 for a specific selected region (e.g. Germany, Poland, Spain), 1 for a
-  // generic Europe/EU match, 0 for none. Highest across the posting's
-  // locations wins.
-  private regionScore(locations: string[], hiringRegions: string[]): number {
-    if (!hiringRegions.length) return 0
-    let best = 0
-    for (const region of hiringRegions) {
-      if (matchesHiringRegions(locations, [region])) {
-        const generic = GENERIC_REGION_KEYS.has(normalizeForIdentity(region))
-        best = Math.max(best, generic ? 1 : 2)
-      }
-    }
-    return best
   }
 
   // Listing ids the user has already logged an application for, so those

@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { KebabIcon } from '../icons'
+import { MenuScrim, useMenuModality } from './menuModality'
 
-// Kebab (⋮) button with a popover menu. The stylesheet only reveals
-// .watch-menu when its .menu-wrap has the `open` class, so the open state has
-// to be wired in JS (this was missing on the watchlist). Clicking a menu item
-// or anywhere outside closes it.
+// Kebab (⋮) button with a popover menu. While open the menu is modal: the
+// interaction scrim covers the rest of the app so no other element can be
+// hovered or clicked, and tooltips are suppressed. The user exits by clicking
+// away (the scrim) or pressing Escape; only then does the app become live
+// again. See menuModality for the shared behavior.
 export function KebabMenu({
   menuClassName = '',
   children,
@@ -16,22 +18,7 @@ export function KebabMenu({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    function onDocClick(event: MouseEvent) {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false)
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onDocClick)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDocClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  useMenuModality(open, ref, setOpen)
 
   return (
     <span className={`menu-wrap ${open ? 'open' : ''}`.trim()} ref={ref}>
@@ -56,6 +43,7 @@ export function KebabMenu({
       >
         {children}
       </span>
+      {open ? <MenuScrim onClose={() => setOpen(false)} /> : null}
     </span>
   )
 }

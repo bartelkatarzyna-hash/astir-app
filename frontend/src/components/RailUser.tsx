@@ -9,6 +9,7 @@ export function RailUser() {
   const user = useUser()
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -42,12 +43,47 @@ export function RailUser() {
     <div className={`user-menu-wrap${open ? ' open' : ''}`} ref={wrapRef}>
       <div className="user-menu" role="menu" aria-label="Account">
         <Link href="/preferences" role="menuitem" onClick={() => setOpen(false)}>
-          Preferences
+          Settings
         </Link>
-        <button type="button" role="menuitem" onClick={signOut}>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setOpen(false)
+            setConfirmSignOut(true)
+          }}
+        >
           Sign out
         </button>
       </div>
+      {confirmSignOut ? (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) =>
+            event.target === event.currentTarget && setConfirmSignOut(false)
+          }
+        >
+          <section
+            className="modal confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="signOutTitle"
+          >
+            <div className="modal-head">
+              <h2 id="signOutTitle">Sign out?</h2>
+              <p className="confirm-copy">You&apos;ll need to sign back in to pick up where you left off.</p>
+            </div>
+            <div className="modal-actions">
+              <button className="btn ghost" type="button" onClick={() => setConfirmSignOut(false)}>
+                Cancel
+              </button>
+              <button className="btn solid" type="button" onClick={signOut}>
+                Sign out
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
       <button
         className="user"
         type="button"

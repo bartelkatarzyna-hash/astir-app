@@ -8,14 +8,16 @@ type AgentationProps = {
   className?: string
 }
 
-// Dev-only annotation overlay, mirroring prototype/dev-agentation.js:
-// opt in by appending ?agentation=1 to any page URL.
+// Dev-only annotation overlay, mirroring prototype/dev-agentation.js. It shows
+// automatically in local development so UI notes are always one click away, and
+// never ships to production. Force it on/off anywhere with ?agentation=1 / =0.
 export function DevAgentation() {
   const [Agentation, setAgentation] = useState<ComponentType<AgentationProps> | null>(null)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('agentation') !== '1') return
+    const flag = new URLSearchParams(window.location.search).get('agentation')
+    const enabled = flag === '1' || (flag !== '0' && process.env.NODE_ENV !== 'production')
+    if (!enabled) return
 
     import('agentation')
       .then((mod) => setAgentation(() => mod.Agentation as ComponentType<AgentationProps>))

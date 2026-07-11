@@ -34,6 +34,14 @@ export class WatchlistController {
     return this.watchlistService.update(authUser.userId, id, body)
   }
 
+  @Post(':id/resolve')
+  resolve(
+    @CurrentUser() authUser: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<WatchlistCompanyView> {
+    return this.watchlistService.resolve(authUser.userId, id)
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async remove(

@@ -6,6 +6,7 @@ import { ConfigModule } from './config/config.module'
 import { DatabaseModule } from './database/database.module'
 import { HealthModule } from './health/health.module'
 import { JobBoardsModule } from './job-boards/job-boards.module'
+import { RemoteCompaniesModule } from './remote-companies/remote-companies.module'
 import { UsersModule } from './users/users.module'
 import { WatchlistModule } from './watchlist/watchlist.module'
 
@@ -19,6 +20,7 @@ import { WatchlistModule } from './watchlist/watchlist.module'
     ScheduleModule.forRoot(),
     JobBoardsModule,
     WatchlistModule,
+    RemoteCompaniesModule,
     ApplicationsModule,
   ],
 })

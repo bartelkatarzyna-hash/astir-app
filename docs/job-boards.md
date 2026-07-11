@@ -12,7 +12,7 @@ which sources are polled, and a company's matched openings show under it on the
 Watchlist.
 
 Launch providers: Greenhouse, Ashby, Workable, Lever, SmartRecruiters, Recruitee,
-Teamtailor, Personio, Workday, and a generic schema.org JobPosting reader
+Teamtailor, Personio, Join, Workday, and a generic schema.org JobPosting reader
 (**ATS**), plus Arbeitnow, The Muse, and Adzuna (**aggregator**) — see below.
 
 ## ATS vs aggregator providers
@@ -20,7 +20,7 @@ Teamtailor, Personio, Workday, and a generic schema.org JobPosting reader
 `JobBoardProvider` has a `kind`, and the distinction drives everything:
 
 - **`ats`** (Greenhouse, Ashby, Workable, Lever, SmartRecruiters, Recruitee,
-  Teamtailor, Personio, Workday, JobPosting) — an Applicant Tracking System board with
+  Teamtailor, Personio, Join, Workday, JobPosting) — an Applicant Tracking System board with
   ONE company per board. It cannot be queried without a company handle, so ATS
   providers are only ever polled for companies a user put on their watchlist. In
   code this is enforced by the `AtsProvider` interface, which adds handle
@@ -31,6 +31,9 @@ Teamtailor, Personio, Workday, and a generic schema.org JobPosting reader
   and the generic **JobPosting** reader takes a careers URL as its handle and
   reads embedded schema.org JobPosting JSON-LD — a last-resort fallback (see
   resolution order below), so it claims no host and can't be name-probed.
+  **Join** still guesses a slug like the rest, but its jobs API is keyed by a
+  numeric company id that lives only in the careers page's `__NEXT_DATA__`, so
+  every probe/fetch first resolves the slug to that id.
 - **`aggregator`** (Arbeitnow, The Muse, Adzuna) — a classical multi-company job
   board queried without a handle (keyword/location search). One feed spans many
   companies, so aggregators are polled unconditionally. In code this is the
@@ -127,8 +130,8 @@ Consequences:
 - `job_sources` — one row per company per provider; `external_id` is the provider
   handle (Greenhouse board token, Ashby job-board name, Workable subdomain, Lever
   account, SmartRecruiters company identifier, Recruitee subdomain, Teamtailor
-  subdomain, Personio subdomain, Workday `tenant:dc:site`, or — for the generic
-  JobPosting reader — the careers URL itself).
+  subdomain, Personio subdomain, Join careers slug, Workday `tenant:dc:site`, or
+  — for the generic JobPosting reader — the careers URL itself).
   `kind` is `ats` or `aggregator`; `companyKey` (normalized name) dedupes ATS
   resolution so users watching the same company share one source.
 - `job_listings` — one canonical opening, unique by `fingerprint` (normalized
