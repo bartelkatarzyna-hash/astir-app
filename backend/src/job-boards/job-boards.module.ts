@@ -17,6 +17,7 @@ import { RecruiteeProvider } from './providers/recruitee.provider'
 import { SmartRecruitersProvider } from './providers/smartrecruiters.provider'
 import { TeamtailorProvider } from './providers/teamtailor.provider'
 import { TheMuseProvider } from './providers/themuse.provider'
+import { TraffitProvider } from './providers/traffit.provider'
 import { WorkableProvider } from './providers/workable.provider'
 import { WorkdayProvider } from './providers/workday.provider'
 import { ScrapingFallbackService } from './scraping-fallback.service'
@@ -37,6 +38,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
     PersonioProvider,
     JoinProvider,
     WorkdayProvider,
+    TraffitProvider,
     JobPostingProvider,
     ArbeitnowProvider,
     TheMuseProvider,
@@ -54,6 +56,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         personio: PersonioProvider,
         join: JoinProvider,
         workday: WorkdayProvider,
+        traffit: TraffitProvider,
         // Generic schema.org reader last: it only runs as a resolution fallback.
         jobPosting: JobPostingProvider,
         arbeitnow: ArbeitnowProvider,
@@ -70,6 +73,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         personio,
         join,
         workday,
+        traffit,
         jobPosting,
         arbeitnow,
         theMuse,
@@ -86,6 +90,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         PersonioProvider,
         JoinProvider,
         WorkdayProvider,
+        TraffitProvider,
         JobPostingProvider,
         ArbeitnowProvider,
         TheMuseProvider,

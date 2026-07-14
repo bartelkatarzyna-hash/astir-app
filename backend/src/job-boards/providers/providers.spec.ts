@@ -10,6 +10,7 @@ import { RecruiteeProvider } from './recruitee.provider'
 import { SmartRecruitersProvider } from './smartrecruiters.provider'
 import { TeamtailorProvider } from './teamtailor.provider'
 import { TheMuseProvider } from './themuse.provider'
+import { TraffitProvider } from './traffit.provider'
 import { WorkableProvider } from './workable.provider'
 import { WorkdayProvider } from './workday.provider'
 
@@ -610,6 +611,63 @@ describe('JobPostingProvider.normalize', () => {
     expect(job?.url).toBe('https://acme.example/careers')
     expect(job?.externalId).toBe('https://acme.example/careers')
     expect(provider.normalize({ '@type': 'JobPosting', url: 'https://acme.example/x' }, page)).toBeNull()
+  })
+})
+
+describe('TraffitProvider.normalize', () => {
+  const provider = new TraffitProvider()
+
+  it('maps a published job post into a normalized job', () => {
+    expect(
+      provider.normalize(
+        {
+          id: 27,
+          url: 'https://infer.traffit.com/public/an/8c5d8ad1?source=career_page',
+          application_form: 'https://infer.traffit.com/public/form/a/24298c81?source=career_page',
+          valid_start: '2026-07-07 17:08:14',
+          advert: { id: 41, name: 'People & Culture Generalist', language: 'en', locations: [] },
+          options: { job_type: ['Full time'], _location: 'Poland', _department: 'People & Culture' },
+        },
+        source,
+      ),
+    ).toEqual({
+      provider: 'traffit',
+      externalId: '27',
+      title: 'People & Culture Generalist',
+      companyName: 'Acme',
+      location: 'Poland',
+      locations: ['Poland'],
+      workMode: null,
+      url: 'https://infer.traffit.com/public/an/8c5d8ad1?source=career_page',
+      postedAt: new Date('2026-07-07 17:08:14'),
+      contentLanguage: 'en',
+    })
+  })
+
+  it('reads structured locations, flags remote, falls back to the apply form, and drops incomplete posts', () => {
+    const job = provider.normalize(
+      {
+        id: 5,
+        application_form: 'https://infer.traffit.com/public/form/a/xyz',
+        advert: {
+          name: 'Backend Engineer',
+          language: 'PL',
+          locations: [{ city: 'Kraków', country: 'Poland' }, 'Remote'],
+        },
+      },
+      source,
+    )
+    expect(job?.workMode).toBe('Remote')
+    expect(job?.location).toBe('Kraków, Poland')
+    expect(job?.locations).toEqual(['Kraków, Poland', 'Remote'])
+    // No public `url`, so the apply-form link stands in.
+    expect(job?.url).toBe('https://infer.traffit.com/public/form/a/xyz')
+    expect(job?.contentLanguage).toBe('pl')
+    expect(job?.postedAt).toBeNull()
+    expect(provider.normalize({ id: 5, advert: { name: 'No url' } }, source)).toBeNull()
+    expect(
+      provider.normalize({ advert: { name: 'No id' }, url: 'https://x.traffit.com/a' }, source),
+    ).toBeNull()
   })
 })
 

@@ -8,6 +8,7 @@ import { PersonioProvider } from './personio.provider'
 import { RecruiteeProvider } from './recruitee.provider'
 import { SmartRecruitersProvider } from './smartrecruiters.provider'
 import { TeamtailorProvider } from './teamtailor.provider'
+import { TraffitProvider } from './traffit.provider'
 import { WorkableProvider } from './workable.provider'
 import { WorkdayProvider } from './workday.provider'
 
@@ -46,6 +47,7 @@ describe('handleFromUrl', () => {
   const personio = new PersonioProvider()
   const join = new JoinProvider()
   const workday = new WorkdayProvider()
+  const traffit = new TraffitProvider()
   const jobPosting = new JobPostingProvider()
 
   it('extracts a Greenhouse board token from its URLs', () => {
@@ -114,6 +116,15 @@ describe('handleFromUrl', () => {
     expect(workday.handleFromUrl('https://nvidia.wd5.myworkdayjobs.com')).toBeNull()
   })
 
+  it('extracts a Traffit account subdomain but not the platform hosts', () => {
+    expect(traffit.handleFromUrl('https://infer.traffit.com/public/an/abc?source=career_page')).toBe(
+      'infer',
+    )
+    expect(traffit.handleFromUrl('https://infer.traffit.com/career')).toBe('infer')
+    expect(traffit.handleFromUrl('https://www.traffit.com/pricing')).toBeNull()
+    expect(traffit.handleFromUrl('https://api.traffit.com/')).toBeNull()
+  })
+
   it('never claims a URL for the generic JobPosting reader', () => {
     expect(jobPosting.handleFromUrl()).toBeNull()
     expect(jobPosting.candidateHandles()).toEqual([])
@@ -128,5 +139,6 @@ describe('handleFromUrl', () => {
     expect(personio.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
     expect(join.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
     expect(workday.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
+    expect(traffit.handleFromUrl('https://jobs.lever.co/ro')).toBeNull()
   })
 })
