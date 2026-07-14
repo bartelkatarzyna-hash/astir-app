@@ -48,6 +48,13 @@ function countText(count: number) {
   return count === 1 ? '1 application' : `${count} applications`
 }
 
+// Header label: the total on its own ("82 applications"), or "56 of 82
+// applications" when a filter/search narrows the list — so the visible count is
+// never mistaken for the total.
+function applicationsCountLabel(shown: number, total: number) {
+  return shown === total ? countText(total) : `${shown} of ${countText(total)}`
+}
+
 // Collapse a possibly multi-value location into a compact label plus the full
 // list for the hover tooltip. "Germany,Austria,Finland" becomes "Germany +2"
 // with all three revealed on hover; a single value is shown as-is.
@@ -235,7 +242,7 @@ export function ApplicationsView() {
         </div>
         <div className="applications-meta">
           <div className="applications-count-search">
-            <div className="applications-count">{countText(all.length)}</div>
+            <div className="applications-count">{applicationsCountLabel(rows.length, all.length)}</div>
             <div className={`applications-search ${searchOpen ? 'open' : ''}`.trim()}>
               <button
                 className="round-icon"
