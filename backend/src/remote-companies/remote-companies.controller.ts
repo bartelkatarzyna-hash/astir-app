@@ -1,8 +1,22 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common'
 import { AdminGuard } from '../auth/admin.guard'
 import { AuthenticatedUser, CurrentUser } from '../auth/current-user.decorator'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
-import { BulkRemoteCompanyDto, CreateRemoteCompanyDto } from './dto/remote-company.dto'
+import {
+  BulkRemoteCompanyDto,
+  CreateRemoteCompanyDto,
+  UpdateRemoteCompanyDto,
+} from './dto/remote-company.dto'
 import { BulkResultRow, RemoteCompaniesService, RemoteCompanyView } from './remote-companies.service'
 
 // Admin-only: curates the global Remote Job Board company list. JwtAuthGuard
@@ -38,6 +52,14 @@ export class RemoteCompaniesController {
   @Post('refresh')
   refresh(): Promise<{ attempted: number; resolved: number; unresolved: number }> {
     return this.remoteCompanies.refreshUnresolved()
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateRemoteCompanyDto,
+  ): Promise<RemoteCompanyView> {
+    return this.remoteCompanies.update(id, body)
   }
 
   @Post(':id/resolve')

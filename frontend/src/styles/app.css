@@ -3276,9 +3276,44 @@ textarea {
 
 .admin-company-main {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.admin-company-heading {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
+  max-width: 100%;
+}
+
+.admin-company-link {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--ink2);
+  font-size: var(--type-chip);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-company-link.muted {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.admin-company-edit {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.admin-company-row.editing {
+  align-items: stretch;
 }
 
 .admin-company-actions {

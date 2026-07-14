@@ -46,6 +46,13 @@ export function AdminPanel() {
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null)
   const [retryingId, setRetryingId] = useState<string | null>(null)
 
+  // Inline editing of a company's name / careers URL.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editUrl, setEditUrl] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!user.isAdmin) {
       return
@@ -181,6 +188,44 @@ export function AdminPanel() {
     }
   }
 
+  function startEdit(company: RemoteCompany) {
+    setEditingId(company.id)
+    setEditName(company.name)
+    setEditUrl(company.careersUrl ?? '')
+    setEditError(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditError(null)
+  }
+
+  async function saveEdit(company: RemoteCompany) {
+    const trimmed = editName.trim()
+    if (!trimmed || savingEdit) return
+    setSavingEdit(true)
+    setEditError(null)
+    try {
+      const response = await fetch(`/api/remote-companies/${company.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed, careersUrl: editUrl.trim() }),
+      })
+      if (response.status === 409) {
+        setEditError('That company name is already on the list.')
+        return
+      }
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+      const updated = (await response.json()) as RemoteCompany
+      setCompanies((prev) => prev?.map((item) => (item.id === updated.id ? updated : item)) ?? prev)
+      setEditingId(null)
+    } catch {
+      setEditError('Could not save. Try again.')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   async function remove(company: RemoteCompany) {
     const previous = companies
     setCompanies((prev) => prev?.filter((item) => item.id !== company.id) ?? prev)
@@ -303,31 +348,95 @@ export function AdminPanel() {
           <p className="watch-invite">No companies yet. Add some above.</p>
         ) : (
           <ul className="admin-company-list">
-            {companies.map((company) => (
-              <li key={company.id} className="admin-company-row">
-                <div className="admin-company-main">
-                  <span className="admin-company-name">{company.name}</span>
-                  <span className={`admin-status admin-status-${company.resolutionStatus}`}>
-                    {STATUS_LABEL[company.resolutionStatus]}
-                  </span>
-                </div>
-                <div className="admin-company-actions">
-                  {company.resolutionStatus !== 'resolved' ? (
-                    <button
-                      className="text-button"
-                      type="button"
-                      disabled={retryingId === company.id}
-                      onClick={() => retryOne(company)}
-                    >
-                      {retryingId === company.id ? 'Retrying…' : 'Retry'}
+            {companies.map((company) =>
+              editingId === company.id ? (
+                <li key={company.id} className="admin-company-row editing">
+                  <div className="admin-company-edit">
+                    <label>
+                      Company name
+                      <input
+                        value={editName}
+                        onChange={(event) => {
+                          setEditName(event.target.value)
+                          setEditError(null)
+                        }}
+                        maxLength={200}
+                      />
+                    </label>
+                    <label>
+                      Careers URL
+                      <input
+                        value={editUrl}
+                        onChange={(event) => setEditUrl(event.target.value)}
+                        maxLength={2000}
+                        placeholder="https://…"
+                      />
+                    </label>
+                    <div className="prefs-actions">
+                      <button
+                        className="btn solid"
+                        type="button"
+                        disabled={!editName.trim() || savingEdit}
+                        onClick={() => saveEdit(company)}
+                      >
+                        {savingEdit ? 'Saving…' : 'Save'}
+                      </button>
+                      <button
+                        className="btn ghost"
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={cancelEdit}
+                      >
+                        Cancel
+                      </button>
+                      {editError ? <span className="prefs-status error">{editError}</span> : null}
+                    </div>
+                  </div>
+                </li>
+              ) : (
+                <li key={company.id} className="admin-company-row">
+                  <div className="admin-company-main">
+                    <div className="admin-company-heading">
+                      <span className="admin-company-name">{company.name}</span>
+                      <span className={`admin-status admin-status-${company.resolutionStatus}`}>
+                        {STATUS_LABEL[company.resolutionStatus]}
+                      </span>
+                    </div>
+                    {company.careersUrl ? (
+                      <a
+                        className="admin-company-link"
+                        href={company.careersUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={company.careersUrl}
+                      >
+                        {company.careersUrl}
+                      </a>
+                    ) : (
+                      <span className="admin-company-link muted">No careers link</span>
+                    )}
+                  </div>
+                  <div className="admin-company-actions">
+                    <button className="text-button" type="button" onClick={() => startEdit(company)}>
+                      Edit
                     </button>
-                  ) : null}
-                  <button className="text-button" type="button" onClick={() => remove(company)}>
-                    Remove
-                  </button>
-                </div>
-              </li>
-            ))}
+                    {company.resolutionStatus !== 'resolved' ? (
+                      <button
+                        className="text-button"
+                        type="button"
+                        disabled={retryingId === company.id}
+                        onClick={() => retryOne(company)}
+                      >
+                        {retryingId === company.id ? 'Retrying…' : 'Retry'}
+                      </button>
+                    ) : null}
+                    <button className="text-button" type="button" onClick={() => remove(company)}>
+                      Remove
+                    </button>
+                  </div>
+                </li>
+              ),
+            )}
           </ul>
         )}
       </div>

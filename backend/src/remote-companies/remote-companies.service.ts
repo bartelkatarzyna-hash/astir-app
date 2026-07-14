@@ -68,6 +68,43 @@ export class RemoteCompaniesService {
     return this.toView(saved ?? company)
   }
 
+  // Edit an existing company's name and/or careers URL. Changing the name
+  // re-checks the uniqueness key; an empty careers URL clears the link. Either
+  // change re-resolves so a corrected URL takes effect immediately (the common
+  // case: pasting the real ATS URL for a company that couldn't be name-probed).
+  async update(
+    id: string,
+    input: { name?: string; careersUrl?: string },
+  ): Promise<RemoteCompanyView> {
+    const company = await this.prisma.remoteCompany.findUnique({ where: { id } })
+    if (!company) {
+      throw new NotFoundException('Remote company not found')
+    }
+    const data: { name?: string; nameKey?: string; careersUrl?: string | null } = {}
+    if (input.name !== undefined) {
+      const name = input.name.trim()
+      const nameKey = companyKey(name)
+      if (!nameKey) {
+        throw new ConflictException('Company name is empty')
+      }
+      if (nameKey !== company.nameKey) {
+        const clash = await this.prisma.remoteCompany.findUnique({ where: { nameKey } })
+        if (clash) {
+          throw new ConflictException('This company is already on the remote job board list')
+        }
+      }
+      data.name = name
+      data.nameKey = nameKey
+    }
+    if (input.careersUrl !== undefined) {
+      data.careersUrl = input.careersUrl.trim() || null
+    }
+    const updated = await this.prisma.remoteCompany.update({ where: { id }, data })
+    await this.resolveAndSync(updated)
+    const saved = await this.prisma.remoteCompany.findUnique({ where: { id } })
+    return this.toView(saved ?? updated)
+  }
+
   // Paste-many: one company per line, optional "Name, careersUrl". Lines are
   // resolved sequentially (resolution probes external ATS APIs, so we avoid a
   // burst) and each gets its own result row. A single failure never aborts the
