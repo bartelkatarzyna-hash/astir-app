@@ -74,6 +74,13 @@ export class TeamtailorProvider implements AtsProvider {
   readonly kind = 'ats' as const
 
   private feedUrl(handle: string): string {
+    // A handle that is already a full host (e.g. "jobs.zitadel.com") is a
+    // career site served on a vanity domain — the JSON Feed still lives at
+    // /jobs.json, so use it directly. A bare handle is the *.teamtailor.com
+    // subdomain form.
+    if (handle.includes('.')) {
+      return `https://${handle}/jobs.json`
+    }
     return `https://${encodeURIComponent(handle)}.teamtailor.com/jobs.json`
   }
 
