@@ -25,6 +25,52 @@ export type BulkResultRow = {
 
 type CreateInput = { name: string; careersUrl?: string }
 
+// A bulk-import line that is a bare URL (rather than a company name) so it can
+// be merged onto the company above it. We require a scheme, a path, or a "www."
+// prefix so plain domain-style company names (e.g. "cal.com", "Ghost.org")
+// stay company names.
+function looksLikeUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value) || /^www\./i.test(value) || value.includes('/')
+}
+
+// Parse a paste-many blob into logical companies. One company per line,
+// "Name" or "Name, careersUrl"; a line that is only a URL is folded onto the
+// company above it as its careers URL. Lines that are neither a valid company
+// name nor an attachable URL are returned as `invalid` so the caller can report
+// them. Kept pure (no DB/network) so it is unit-testable on its own.
+export function parseBulkCompanies(text: string): {
+  entries: CreateInput[]
+  invalid: string[]
+} {
+  const entries: CreateInput[] = []
+  const invalid: string[] = []
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      continue
+    }
+    const [rawName, ...rest] = trimmed.split(',')
+    const name = rawName.trim()
+    const careersUrl = rest.join(',').trim() || undefined
+    // A line that is only a URL belongs to the company on the line above.
+    if (!careersUrl && looksLikeUrl(name)) {
+      const previous = entries[entries.length - 1]
+      if (previous && !previous.careersUrl) {
+        previous.careersUrl = name
+      } else {
+        invalid.push(trimmed)
+      }
+      continue
+    }
+    if (!companyKey(name)) {
+      invalid.push(trimmed)
+      continue
+    }
+    entries.push({ name, careersUrl })
+  }
+  return { entries, invalid }
+}
+
 // Owns the global, admin-curated Remote Job Board company list. Resolution and
 // polling reuse the shared job-board machinery: a remote company resolves to a
 // JobSource exactly like a watchlist company, and the ingestion cron polls it
@@ -105,36 +151,28 @@ export class RemoteCompaniesService {
     return this.toView(saved ?? updated)
   }
 
-  // Paste-many: one company per line, optional "Name, careersUrl". Lines are
-  // resolved sequentially (resolution probes external ATS APIs, so we avoid a
-  // burst) and each gets its own result row. A single failure never aborts the
-  // batch.
+  // Paste-many: one company per line, optional "Name, careersUrl". A URL pasted
+  // on its own line is treated as the careers URL for the company above it, so
+  // a two-line "Name\nhttps://…" paste merges into one company instead of
+  // creating a junk company whose name is a URL. Companies are resolved
+  // sequentially (resolution probes external ATS APIs, so we avoid a burst) and
+  // each gets its own result row. A single failure never aborts the batch.
   async bulkAdd(text: string, addedByEmail: string): Promise<BulkResultRow[]> {
-    const rows: BulkResultRow[] = []
-    for (const line of text.split('\n')) {
-      const trimmed = line.trim()
-      if (!trimmed) {
-        continue
-      }
-      const [rawName, ...rest] = trimmed.split(',')
-      const name = rawName.trim()
-      const careersUrl = rest.join(',').trim() || undefined
-      if (!companyKey(name)) {
-        rows.push({ name: trimmed, status: 'invalid' })
-        continue
-      }
+    const { entries, invalid } = parseBulkCompanies(text)
+    const rows: BulkResultRow[] = invalid.map((name) => ({ name, status: 'invalid' }))
+    for (const entry of entries) {
       try {
-        const company = await this.add({ name, careersUrl }, addedByEmail)
+        const company = await this.add(entry, addedByEmail)
         rows.push({
           name: company.name,
           status: company.resolutionStatus === 'resolved' ? 'resolved' : 'unresolved',
         })
       } catch (error) {
         if (error instanceof ConflictException) {
-          rows.push({ name, status: 'duplicate' })
+          rows.push({ name: entry.name, status: 'duplicate' })
         } else {
-          this.logger.warn(`Bulk add failed for "${name}": ${String(error)}`)
-          rows.push({ name, status: 'unresolved' })
+          this.logger.warn(`Bulk add failed for "${entry.name}": ${String(error)}`)
+          rows.push({ name: entry.name, status: 'unresolved' })
         }
       }
     }

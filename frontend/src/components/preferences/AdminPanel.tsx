@@ -25,6 +25,18 @@ const STATUS_LABEL: Record<ResolutionStatus, string> = {
   unresolved: 'Not found',
 }
 
+type SortKey = 'newest' | 'name' | 'working' | 'not-working'
+
+// "Working" = the careers URL resolved. Used to sort resolved vs. the rest.
+const workingRank = (company: RemoteCompany) => (company.resolutionStatus === 'resolved' ? 1 : 0)
+
+const SORT_LABEL: Record<SortKey, string> = {
+  newest: 'Newest first',
+  name: 'Name (A–Z)',
+  working: 'Working first',
+  'not-working': 'Not working first',
+}
+
 export function AdminPanel() {
   const user = useUser()
   const [companies, setCompanies] = useState<RemoteCompany[] | null>(null)
@@ -45,6 +57,10 @@ export function AdminPanel() {
   const [refreshing, setRefreshing] = useState(false)
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null)
   const [retryingId, setRetryingId] = useState<string | null>(null)
+
+  // List search + sort controls.
+  const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<SortKey>('newest')
 
   // Inline editing of a company's name / careers URL.
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -248,6 +264,30 @@ export function AdminPanel() {
       }
     : null
 
+  const query = search.trim().toLowerCase()
+  const visibleCompanies = companies
+    ? companies
+        .filter(
+          (company) =>
+            !query ||
+            company.name.toLowerCase().includes(query) ||
+            (company.careersUrl?.toLowerCase().includes(query) ?? false),
+        )
+        .sort((a, b) => {
+          switch (sortKey) {
+            case 'name':
+              return a.name.localeCompare(b.name)
+            case 'working':
+              return workingRank(b) - workingRank(a)
+            case 'not-working':
+              return workingRank(a) - workingRank(b)
+            case 'newest':
+            default:
+              return b.createdAt.localeCompare(a.createdAt)
+          }
+        })
+    : null
+
   return (
     <section className="screen">
       <div className="page-head">
@@ -295,8 +335,9 @@ export function AdminPanel() {
       <div className="prefs-card">
         <h2 className="prefs-section-title">Add many</h2>
         <p className="prefs-hint">
-          One company per line. Add an optional careers URL after a comma:{' '}
-          <code>GitLab, https://job-boards.greenhouse.io/gitlab</code>
+          One company per line. Add an optional careers URL after a comma —{' '}
+          <code>GitLab, https://job-boards.greenhouse.io/gitlab</code> — or on its own line
+          right below the company name.
         </p>
         <label>
           <textarea
@@ -324,7 +365,12 @@ export function AdminPanel() {
       <div className="prefs-card">
         <div className="prefs-section-head">
           <h2 className="prefs-section-title">
-            On the list{companies ? ` (${companies.length})` : ''}
+            On the list
+            {companies
+              ? query
+                ? ` (${visibleCompanies?.length ?? 0} of ${companies.length})`
+                : ` (${companies.length})`
+              : ''}
           </h2>
           <button
             className="btn"
@@ -335,6 +381,28 @@ export function AdminPanel() {
             {refreshing ? 'Re-resolving…' : 'Re-resolve not found'}
           </button>
         </div>
+        {companies && companies.length > 0 ? (
+          <div className="admin-list-controls">
+            <input
+              className="admin-list-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by company or URL…"
+              aria-label="Search companies"
+            />
+            <label className="admin-list-sort">
+              Sort
+              <select value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)}>
+                {(Object.keys(SORT_LABEL) as SortKey[]).map((key) => (
+                  <option key={key} value={key}>
+                    {SORT_LABEL[key]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
         <p className="prefs-hint">
           Re-attempts every “Not found” company — use this after a new ATS integration ships so
           companies that couldn’t be matched before get picked up.
@@ -346,9 +414,11 @@ export function AdminPanel() {
           <p className="watch-invite">Loading…</p>
         ) : companies.length === 0 ? (
           <p className="watch-invite">No companies yet. Add some above.</p>
+        ) : visibleCompanies && visibleCompanies.length === 0 ? (
+          <p className="watch-invite">No companies match “{search.trim()}”.</p>
         ) : (
           <ul className="admin-company-list">
-            {companies.map((company) =>
+            {visibleCompanies?.map((company) =>
               editingId === company.id ? (
                 <li key={company.id} className="admin-company-row editing">
                   <div className="admin-company-edit">
