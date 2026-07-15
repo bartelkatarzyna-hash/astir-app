@@ -1,11 +1,13 @@
 import { AdzunaProvider } from './adzuna.provider'
 import { ArbeitnowProvider } from './arbeitnow.provider'
 import { AshbyProvider } from './ashby.provider'
+import { BambooHrProvider } from './bamboohr.provider'
 import { GreenhouseProvider } from './greenhouse.provider'
 import { JobPostingProvider } from './jobposting.provider'
 import { JoinProvider } from './join.provider'
 import { LeverProvider } from './lever.provider'
 import { PersonioProvider } from './personio.provider'
+import { PinpointProvider } from './pinpoint.provider'
 import { RecruiteeProvider } from './recruitee.provider'
 import { SmartRecruitersProvider } from './smartrecruiters.provider'
 import { TeamtailorProvider } from './teamtailor.provider'
@@ -738,5 +740,104 @@ describe('AdzunaProvider', () => {
     await expect(provider.fetchListings()).resolves.toEqual([])
     if (priorId !== undefined) process.env.ADZUNA_APP_ID = priorId
     if (priorKey !== undefined) process.env.ADZUNA_APP_KEY = priorKey
+  })
+})
+
+describe('BambooHrProvider', () => {
+  const provider = new BambooHrProvider()
+
+  it('extracts the account handle from a careers URL and ignores platform hosts', () => {
+    expect(provider.handleFromUrl('https://beehiiv.bamboohr.com/careers')).toBe('beehiiv')
+    expect(provider.handleFromUrl('https://beehiiv.bamboohr.com/careers/58')).toBe('beehiiv')
+    expect(provider.handleFromUrl('https://staticfe.bamboohr.com/resources/x.png')).toBeNull()
+    expect(provider.handleFromUrl('https://example.com/careers')).toBeNull()
+  })
+
+  it('builds the public job URL from the handle and id', () => {
+    expect(
+      provider.normalize(
+        {
+          id: 58,
+          jobOpeningName: 'Senior Product Marketing Manager (global)',
+          atsLocation: { city: 'Berlin', province: null, country: 'Germany' },
+          isRemote: null,
+        },
+        { externalId: 'beehiiv', companyName: 'beehiiv' },
+      ),
+    ).toEqual({
+      provider: 'bamboohr',
+      externalId: '58',
+      title: 'Senior Product Marketing Manager (global)',
+      companyName: 'beehiiv',
+      location: 'Berlin, Germany',
+      locations: ['Berlin, Germany'],
+      workMode: null,
+      url: 'https://beehiiv.bamboohr.com/careers/58',
+      postedAt: null,
+    })
+  })
+
+  it('marks remote roles and drops incomplete jobs', () => {
+    const remote = provider.normalize(
+      { id: 1, jobOpeningName: 'Engineer', isRemote: true },
+      { externalId: 'beehiiv', companyName: 'beehiiv' },
+    )
+    expect(remote?.workMode).toBe('Remote')
+    expect(remote?.location).toBeNull()
+    expect(
+      provider.normalize({ jobOpeningName: 'No id' }, { externalId: 'x', companyName: 'X' }),
+    ).toBeNull()
+  })
+})
+
+describe('PinpointProvider', () => {
+  const provider = new PinpointProvider()
+
+  it('extracts the account handle from a careers URL and ignores platform hosts', () => {
+    expect(provider.handleFromUrl('https://safetywing.pinpointhq.com/')).toBe('safetywing')
+    expect(provider.handleFromUrl('https://safetywing.pinpointhq.com/en/postings/abc')).toBe(
+      'safetywing',
+    )
+    expect(provider.handleFromUrl('https://app.pinpointhq.com/x')).toBeNull()
+  })
+
+  it('maps a posting into a normalized job', () => {
+    expect(
+      provider.normalize(
+        {
+          id: '411131',
+          title: 'Global B2B Insurance Partner',
+          url: 'https://safetywing.pinpointhq.com/en/postings/0bff0bfe',
+          location: { name: 'Remote' },
+          workplace_type: 'remote',
+          published_at: '2026-05-01T00:00:00Z',
+        },
+        { externalId: 'safetywing', companyName: 'Safetywing' },
+      ),
+    ).toEqual({
+      provider: 'pinpoint',
+      externalId: '411131',
+      title: 'Global B2B Insurance Partner',
+      companyName: 'Safetywing',
+      location: 'Remote',
+      locations: ['Remote'],
+      workMode: 'Remote',
+      url: 'https://safetywing.pinpointhq.com/en/postings/0bff0bfe',
+      postedAt: new Date('2026-05-01T00:00:00Z'),
+    })
+  })
+
+  it('maps workplace types and drops incomplete postings', () => {
+    const hybrid = provider.normalize(
+      { id: 2, title: 'PM', url: 'https://x.pinpointhq.com/postings/2', workplace_type: 'hybrid' },
+      { externalId: 'x', companyName: 'X' },
+    )
+    expect(hybrid?.workMode).toBe('Hybrid')
+    expect(
+      provider.normalize(
+        { id: 3, title: 'No url' },
+        { externalId: 'x', companyName: 'X' },
+      ),
+    ).toBeNull()
   })
 })

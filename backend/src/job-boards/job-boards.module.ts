@@ -7,12 +7,14 @@ import { JobMatchingService } from './job-matching.service'
 import { AdzunaProvider } from './providers/adzuna.provider'
 import { ArbeitnowProvider } from './providers/arbeitnow.provider'
 import { AshbyProvider } from './providers/ashby.provider'
+import { BambooHrProvider } from './providers/bamboohr.provider'
 import { GreenhouseProvider } from './providers/greenhouse.provider'
 import { JOB_BOARD_PROVIDERS } from './providers/job-board-provider'
 import { JoinProvider } from './providers/join.provider'
 import { JobPostingProvider } from './providers/jobposting.provider'
 import { LeverProvider } from './providers/lever.provider'
 import { PersonioProvider } from './providers/personio.provider'
+import { PinpointProvider } from './providers/pinpoint.provider'
 import { RecruiteeProvider } from './providers/recruitee.provider'
 import { SmartRecruitersProvider } from './providers/smartrecruiters.provider'
 import { TeamtailorProvider } from './providers/teamtailor.provider'
@@ -39,6 +41,8 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
     JoinProvider,
     WorkdayProvider,
     TraffitProvider,
+    BambooHrProvider,
+    PinpointProvider,
     JobPostingProvider,
     ArbeitnowProvider,
     TheMuseProvider,
@@ -57,6 +61,8 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         join: JoinProvider,
         workday: WorkdayProvider,
         traffit: TraffitProvider,
+        bamboohr: BambooHrProvider,
+        pinpoint: PinpointProvider,
         // Generic schema.org reader last: it only runs as a resolution fallback.
         jobPosting: JobPostingProvider,
         arbeitnow: ArbeitnowProvider,
@@ -74,6 +80,8 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         join,
         workday,
         traffit,
+        bamboohr,
+        pinpoint,
         jobPosting,
         arbeitnow,
         theMuse,
@@ -91,6 +99,8 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         JoinProvider,
         WorkdayProvider,
         TraffitProvider,
+        BambooHrProvider,
+        PinpointProvider,
         JobPostingProvider,
         ArbeitnowProvider,
         TheMuseProvider,
