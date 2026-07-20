@@ -1679,12 +1679,6 @@ h1 {
   line-height: 1.5;
 }
 
-/* A step darker on hover, but hold the fill steady while typing — focus is
-   signalled by the stage-colored border alone. */
-.note-field:hover:not(:focus) {
-  background: var(--tile-hover);
-}
-
 .note-field:focus {
   border-color: var(--st-dot, var(--gold));
   box-shadow: var(--focus-ring);
@@ -1701,13 +1695,75 @@ h1 {
 }
 
 .note-check {
-  display: inline-grid;
-  width: var(--watch-title-action-size);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   height: var(--watch-title-action-size);
-  place-items: center;
   margin: 0 var(--space-1);
   vertical-align: middle;
   cursor: pointer;
+}
+
+/* Six-dot drag handle before a checkbox. Subtle at rest, solid on hover; it is
+   the only draggable part, so reordering starts here rather than on the box. */
+.note-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-3);
+  color: var(--placeholder);
+  opacity: 0.4;
+  cursor: grab;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+.note-grip svg {
+  width: 10px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.note-check:hover .note-grip {
+  opacity: 1;
+  color: var(--ink2);
+}
+
+.note-check.note-check-dragging {
+  opacity: 0.4;
+}
+
+/* Floating preview of the row under the cursor while dragging. */
+.note-drag-ghost {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-thin) solid var(--line2);
+  border-radius: var(--space-1);
+  background: var(--tile);
+  color: var(--ink);
+  font-size: var(--type-body);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.note-drag-ghost .note-box {
+  width: var(--space-4);
+  height: var(--space-4);
+  border: var(--border-thin) solid var(--line2);
+  border-radius: var(--space-1);
+}
+
+/* Line showing where the dragged row will drop. */
+.note-drop-line {
+  position: fixed;
+  z-index: 60;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gold);
+  pointer-events: none;
 }
 
 .note-box {
@@ -1734,6 +1790,146 @@ h1 {
 .note-check[data-note-check="true"] .note-box {
   border-color: transparent;
   background: var(--gold-soft);
+}
+
+
+/* Floating format toolbar over a text selection. Positioned in JS (fixed, in
+   viewport coordinates); it sits just above the selection. */
+.note-toolbar {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, calc(-100% - var(--space-2)));
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--tile);
+  border: var(--border-thin) solid var(--line2);
+  border-radius: var(--input-radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.note-toolbar button {
+  display: grid;
+  place-items: center;
+  min-width: var(--watch-title-action-size);
+  height: var(--watch-title-action-size);
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--space-1);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--type-body);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.note-toolbar button:hover {
+  background: var(--tile-hover);
+}
+
+/* Pressed/active inline format (bold/italic/etc. under the caret). */
+.note-toolbar button.active {
+  background: var(--gold-soft);
+  color: var(--gold-deep);
+}
+
+.note-toolbar .note-tb-bold {
+  font-weight: 700;
+}
+
+.note-toolbar .note-tb-italic {
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.note-toolbar .note-tb-strike {
+  text-decoration: line-through;
+}
+
+.note-toolbar .note-tb-underline {
+  text-decoration: underline;
+}
+
+.note-toolbar .note-tb-sep {
+  width: var(--border-thin);
+  align-self: stretch;
+  margin: var(--space-1) 0;
+  background: var(--line2);
+}
+
+/* Blockquote inside a note. */
+.note-field blockquote,
+.note-quote {
+  margin: var(--space-2) 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 3px solid var(--line2);
+}
+
+/* Collapsible (toggle) section. */
+.note-collapse {
+  margin: var(--space-2) 0;
+}
+
+.note-collapse-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.note-collapse-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  /* Match the title's line box (font-size × line-height) so the centered arrow
+     lines up with the first line of the summary, even when it wraps. */
+  height: calc(var(--type-body) * 1.5);
+  margin-left: calc(var(--space-1) * -1);
+  border-radius: 6px;
+  color: var(--placeholder);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.note-collapse-toggle:hover {
+  background: var(--hover-soft);
+  color: var(--ink2);
+}
+
+.note-collapse-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.note-collapse[data-open='false'] .note-collapse-toggle {
+  transform: rotate(-90deg);
+}
+
+/* The body is every child after the head. Typing Enter lets the browser split
+   it into more lines (extra .note-collapse-body divs, bare <div>s, or <br>s);
+   target them all so a closed section hides its whole body regardless. */
+.note-collapse[data-open='false'] > *:not(.note-collapse-head) {
+  display: none;
+}
+
+.note-collapse-summary {
+  font-weight: 600;
+  flex: 1;
+  outline: none;
+}
+
+.note-collapse-summary:empty::before {
+  content: attr(data-placeholder);
+  color: var(--placeholder);
+  font-weight: 400;
+}
+
+.note-collapse > *:not(.note-collapse-head) {
+  padding-left: var(--space-6);
 }
 
 .pipeline-empty {

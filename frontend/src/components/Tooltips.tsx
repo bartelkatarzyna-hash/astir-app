@@ -77,10 +77,16 @@ export function Tooltips() {
       const left = Math.min(Math.max(anchorCenter - bubbleRect.width / 2, minLeft), maxLeft)
       const belowTop = targetRect.bottom + shift + inset - noArrowInset
       const aboveTop = targetRect.top - bubbleRect.height - shift - inset + noArrowInset
-      const useAbove = belowTop + bubbleRect.height > window.innerHeight - inset && aboveTop >= inset
+      // Anchors can opt into "above" (data-tooltip-above) so a floating control
+      // like the note toolbar doesn't drop its tooltip over the text below it.
+      // When opted in we always go above (clamped into view); otherwise we only
+      // flip up when the bubble would overflow the viewport bottom.
+      const preferAbove = activeTooltipTarget.dataset.tooltipAbove !== undefined
+      const overflowsBelow = belowTop + bubbleRect.height > window.innerHeight - inset
+      const useAbove = preferAbove || (overflowsBelow && aboveTop >= inset)
 
       tooltipLayer.style.left = `${left}px`
-      tooltipLayer.style.top = `${useAbove ? aboveTop : belowTop}px`
+      tooltipLayer.style.top = `${useAbove ? Math.max(aboveTop, inset) : belowTop}px`
       tooltipLayer.classList.toggle('above', useAbove)
       tooltipArrow.style.left = `${anchorCenter - left}px`
     }

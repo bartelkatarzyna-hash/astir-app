@@ -2,6 +2,7 @@ import { AdzunaProvider } from './adzuna.provider'
 import { ArbeitnowProvider } from './arbeitnow.provider'
 import { AshbyProvider } from './ashby.provider'
 import { BambooHrProvider } from './bamboohr.provider'
+import { BreezyProvider } from './breezy.provider'
 import { GreenhouseProvider } from './greenhouse.provider'
 import { JobPostingProvider } from './jobposting.provider'
 import { JoinProvider } from './join.provider'
@@ -838,6 +839,108 @@ describe('PinpointProvider', () => {
         { id: 3, title: 'No url' },
         { externalId: 'x', companyName: 'X' },
       ),
+    ).toBeNull()
+  })
+})
+
+describe('AshbyProvider.normalizeGraphql', () => {
+  const provider = new AshbyProvider()
+
+  it('maps a GraphQL brief and synthesizes the hosted job URL', () => {
+    expect(
+      provider.normalizeGraphql(
+        {
+          id: 'c7509615-34bb-4ca8-b6a0-adbdb63f6c1a',
+          title: 'Account Executive',
+          locationName: 'San Francisco, CA',
+          workplaceType: 'Hybrid',
+          secondaryLocations: [{ locationName: 'New York, NY' }, { locationName: 'Los Angeles, CA' }],
+        },
+        { externalId: 'whatnot', companyName: 'Whatnot' },
+      ),
+    ).toEqual({
+      provider: 'ashby',
+      externalId: 'c7509615-34bb-4ca8-b6a0-adbdb63f6c1a',
+      title: 'Account Executive',
+      companyName: 'Whatnot',
+      location: 'San Francisco, CA',
+      locations: ['San Francisco, CA', 'New York, NY', 'Los Angeles, CA'],
+      workMode: 'Hybrid',
+      url: 'https://jobs.ashbyhq.com/whatnot/c7509615-34bb-4ca8-b6a0-adbdb63f6c1a',
+      postedAt: null,
+    })
+  })
+
+  it('maps remote/null workplace types and drops incomplete postings', () => {
+    expect(
+      provider.normalizeGraphql(
+        { id: '1', title: 'Remote Eng', workplaceType: 'Remote' },
+        { externalId: 'whatnot', companyName: 'Whatnot' },
+      )?.workMode,
+    ).toBe('Remote')
+    expect(
+      provider.normalizeGraphql(
+        { id: '2', title: 'Unknown mode', workplaceType: null as unknown as undefined },
+        { externalId: 'whatnot', companyName: 'Whatnot' },
+      )?.workMode,
+    ).toBeNull()
+    expect(
+      provider.normalizeGraphql({ title: 'No id' }, { externalId: 'whatnot', companyName: 'Whatnot' }),
+    ).toBeNull()
+  })
+})
+
+describe('BreezyProvider', () => {
+  const provider = new BreezyProvider()
+
+  it('extracts the account handle from a careers URL and ignores platform hosts', () => {
+    expect(provider.handleFromUrl('https://cal-com.breezy.hr/')).toBe('cal-com')
+    expect(provider.handleFromUrl('https://cal-com.breezy.hr/p/0b1f47fd2534-chief-of-staff')).toBe(
+      'cal-com',
+    )
+    expect(provider.handleFromUrl('https://www.breezy.hr/')).toBeNull()
+    expect(provider.handleFromUrl('https://example.com/careers')).toBeNull()
+  })
+
+  it('maps a position into a normalized job', () => {
+    expect(
+      provider.normalize(
+        {
+          id: '0b1f47fd2534',
+          name: 'Chief of Staff to Head of GTM',
+          url: 'https://cal-com.breezy.hr/p/0b1f47fd2534-chief-of-staff',
+          published_date: '2026-07-02T09:24:20.573Z',
+          location: { name: 'New York, NY', is_remote: true, remote_details: { value: 'hybrid' } },
+          locations: [{ name: 'New York, NY' }, { name: 'Remote (US)' }],
+        },
+        { externalId: 'cal-com', companyName: 'cal.com' },
+      ),
+    ).toEqual({
+      provider: 'breezy',
+      externalId: '0b1f47fd2534',
+      title: 'Chief of Staff to Head of GTM',
+      companyName: 'cal.com',
+      location: 'New York, NY',
+      locations: ['New York, NY', 'Remote (US)'],
+      workMode: 'Hybrid',
+      url: 'https://cal-com.breezy.hr/p/0b1f47fd2534-chief-of-staff',
+      postedAt: new Date('2026-07-02T09:24:20.573Z'),
+    })
+  })
+
+  it('maps remote types and drops incomplete positions', () => {
+    const remote = provider.normalize(
+      {
+        id: '5',
+        name: 'Engineer',
+        url: 'https://x.breezy.hr/p/5',
+        location: { name: 'Anywhere', remote_details: { value: 'remote' } },
+      },
+      { externalId: 'x', companyName: 'X' },
+    )
+    expect(remote?.workMode).toBe('Remote')
+    expect(
+      provider.normalize({ id: '6', name: 'No url' }, { externalId: 'x', companyName: 'X' }),
     ).toBeNull()
   })
 })

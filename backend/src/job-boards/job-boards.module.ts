@@ -8,6 +8,7 @@ import { AdzunaProvider } from './providers/adzuna.provider'
 import { ArbeitnowProvider } from './providers/arbeitnow.provider'
 import { AshbyProvider } from './providers/ashby.provider'
 import { BambooHrProvider } from './providers/bamboohr.provider'
+import { BreezyProvider } from './providers/breezy.provider'
 import { GreenhouseProvider } from './providers/greenhouse.provider'
 import { JOB_BOARD_PROVIDERS } from './providers/job-board-provider'
 import { JoinProvider } from './providers/join.provider'
@@ -43,6 +44,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
     TraffitProvider,
     BambooHrProvider,
     PinpointProvider,
+    BreezyProvider,
     JobPostingProvider,
     ArbeitnowProvider,
     TheMuseProvider,
@@ -63,6 +65,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         traffit: TraffitProvider,
         bamboohr: BambooHrProvider,
         pinpoint: PinpointProvider,
+        breezy: BreezyProvider,
         // Generic schema.org reader last: it only runs as a resolution fallback.
         jobPosting: JobPostingProvider,
         arbeitnow: ArbeitnowProvider,
@@ -82,6 +85,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         traffit,
         bamboohr,
         pinpoint,
+        breezy,
         jobPosting,
         arbeitnow,
         theMuse,
@@ -101,6 +105,7 @@ import { ScrapingFallbackService } from './scraping-fallback.service'
         TraffitProvider,
         BambooHrProvider,
         PinpointProvider,
+        BreezyProvider,
         JobPostingProvider,
         ArbeitnowProvider,
         TheMuseProvider,

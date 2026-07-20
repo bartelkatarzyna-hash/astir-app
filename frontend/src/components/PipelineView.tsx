@@ -10,7 +10,6 @@ import {
   plainDate,
   stageColorKey,
   stageRank,
-  updateApplication,
 } from '@/lib/applications'
 import { HeardBackModal } from './applications/HeardBackModal'
 import { KebabMenu } from './applications/KebabMenu'
@@ -110,7 +109,7 @@ function PipelineCard({
 }
 
 export function PipelineView() {
-  const { applications, changeStage, reload, showSnack, overlay } = useApplications()
+  const { applications, changeStage, saveNote, reload, showSnack, overlay } = useApplications()
   const { isEnabled } = useStageConfig()
   const [expandedId, setExpandedId] = useState('')
   const [logging, setLogging] = useState(false)
@@ -194,7 +193,7 @@ export function PipelineView() {
                 setExpandedId((current) => (current === application.id ? '' : application.id))
               }
               onStage={(status) => void changeStage(application, status, 'pipeline')}
-              onNote={(note) => void updateApplication(application.id, { note })}
+              onNote={(note) => saveNote(application, note)}
             />
           ))
         )}

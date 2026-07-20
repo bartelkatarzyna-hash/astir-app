@@ -25,10 +25,11 @@ export const STATUS_OPTIONS = [
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/
 
-// One block of the rich-text note: a run of text or a checkbox.
+// One block of the rich-text note: a run of text, a checkbox, or a container
+// (quote / collapse) holding nested blocks.
 class NoteBlockDto {
-  @IsIn(['text', 'check'])
-  type!: 'text' | 'check'
+  @IsIn(['text', 'check', 'quote', 'collapse'])
+  type!: 'text' | 'check' | 'quote' | 'collapse'
 
   @IsOptional()
   @IsString()
@@ -38,6 +39,45 @@ class NoteBlockDto {
   @IsOptional()
   @IsBoolean()
   checked?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  bold?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  italic?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  underline?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  strike?: boolean
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  href?: string
+
+  // Collapse (toggle section) title.
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  summary?: string
+
+  // Collapse open/closed state.
+  @IsOptional()
+  @IsBoolean()
+  open?: boolean
+
+  // Nested blocks for quote/collapse containers.
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => NoteBlockDto)
+  blocks?: NoteBlockDto[]
 }
 
 class NoteDto {

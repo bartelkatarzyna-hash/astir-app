@@ -20,8 +20,18 @@ export type Status = (typeof STATUS_OPTIONS)[number]
 export const PIPELINE_STAGES: Status[] = ['1st stage', '2nd stage', '3rd stage', 'Offer', 'Hired']
 
 export type NoteBlock =
-  | { type: 'text'; text: string }
+  | {
+      type: 'text'
+      text: string
+      bold?: boolean
+      italic?: boolean
+      underline?: boolean
+      strike?: boolean
+      href?: string
+    }
   | { type: 'check'; checked: boolean; text: string }
+  | { type: 'quote'; blocks: NoteBlock[] }
+  | { type: 'collapse'; summary: string; open: boolean; blocks: NoteBlock[] }
 
 export type Note = { kind: string; text?: string; blocks: NoteBlock[] }
 
@@ -115,11 +125,20 @@ export function normalizeMode(mode: string | null | undefined): string {
   return 'Remote'
 }
 
+// One block -> its plain text, recursing through quote/collapse containers.
+function blockPlainText(block: NoteBlock): string {
+  if (block.type === 'quote') return block.blocks.map(blockPlainText).join('')
+  if (block.type === 'collapse') {
+    return [block.summary, ...block.blocks.map(blockPlainText)].filter(Boolean).join(' ')
+  }
+  return block.text || ''
+}
+
 // Blocks -> flat text, used to seed the modal textarea.
 export function noteText(note: Note | null | undefined): string {
   if (!note) return ''
   if (Array.isArray(note.blocks) && note.blocks.length > 0) {
-    return note.blocks.map((block) => block.text || '').join('')
+    return note.blocks.map(blockPlainText).join('')
   }
   return note.text || ''
 }
@@ -127,18 +146,6 @@ export function noteText(note: Note | null | undefined): string {
 export function noteFromText(text: string): Note {
   const trimmed = text.trim()
   return { kind: 'blocks', text: trimmed, blocks: trimmed ? [{ type: 'text', text: trimmed }] : [] }
-}
-
-// Split on the "[]" marker into text + checkbox blocks, matching the
-// prototype's noteBlocksFromText.
-export function noteBlocksFromText(text: string): NoteBlock[] {
-  const parts = String(text || '').split('[]')
-  const blocks: NoteBlock[] = []
-  parts.forEach((part, index) => {
-    if (part) blocks.push({ type: 'text', text: part })
-    if (index < parts.length - 1) blocks.push({ type: 'check', checked: false, text: '' })
-  })
-  return blocks
 }
 
 async function asJson<T>(response: Response): Promise<T> {

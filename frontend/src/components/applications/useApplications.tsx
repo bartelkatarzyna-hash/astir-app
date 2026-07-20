@@ -83,6 +83,20 @@ export function useApplications() {
     [reload, showSnack],
   )
 
+  // Persist a note edit. We update local state optimistically so re-opening a
+  // card — which remounts NoteField and reseeds it from this prop — shows the
+  // latest text; the PATCH saves it to the server. No reload(): the seeded-once
+  // NoteField would ignore a refetch anyway, and we save on every keystroke.
+  const saveNote = useCallback(
+    (application: Application, note: NonNullable<Application['note']>) => {
+      setApplications((current) =>
+        (current ?? []).map((item) => (item.id === application.id ? { ...item, note } : item)),
+      )
+      void updateApplication(application.id, { note }).catch(() => setFailed(true))
+    },
+    [],
+  )
+
   // Bulk-close the other in-progress applications after a hire.
   const closeOthers = useCallback(
     async (ids: string[]) => {
@@ -112,5 +126,5 @@ export function useApplications() {
     </>
   )
 
-  return { applications, failed, reload, changeStage, showSnack, overlay }
+  return { applications, failed, reload, changeStage, saveNote, showSnack, overlay }
 }
